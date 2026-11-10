@@ -1,0 +1,241 @@
+/* 🎨 Page styles: colors, buttons, menus. */
+:root {
+  --ink: #2b2d42;
+  --card: #fffdf7;
+  --accent: #ff6b6b;
+  --accent-dark: #c9184a;
+  --sky: #7ec8ff;
+  --sky-light: #d4f1ff;
+  font-family: 'Fredoka', ui-rounded, 'SF Pro Rounded', system-ui, sans-serif;
+  color: var(--ink);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root,
+.app {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--sky);
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: none;
+}
+
+.game {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* ---- Top bar ---- */
+.hud {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none;
+}
+.hud-pill {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+  font-size: 22px;
+  font-weight: 700;
+}
+.heart {
+  width: 26px;
+  height: 24px;
+  transition: transform 0.2s;
+}
+.heart.empty {
+  filter: grayscale(1);
+  opacity: 0.35;
+  transform: scale(0.85);
+}
+.coin-icon {
+  width: 26px;
+  height: 26px;
+}
+.hud-spacer {
+  flex: 1;
+}
+.hud-button {
+  pointer-events: auto;
+  width: 46px;
+  height: 46px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+  font-size: 22px;
+  cursor: pointer;
+}
+
+/* ---- Menus (title, win, try again) ---- */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: rgba(43, 45, 66, 0.35);
+  animation: fade-in 0.3s ease-out;
+}
+.overlay.sky {
+  background: linear-gradient(var(--sky), var(--sky-light));
+}
+.card {
+  position: relative;
+  width: min(460px, 100%);
+  padding: 28px 28px 24px;
+  border-radius: 28px;
+  background: var(--card);
+  text-align: center;
+  box-shadow: 0 10px 0 rgba(0, 0, 0, 0.12), 0 20px 40px rgba(0, 0, 0, 0.15);
+  animation: pop-in 0.35s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+.card h1 {
+  margin: 4px 0 8px;
+  font-size: clamp(30px, 7vw, 44px);
+  line-height: 1.05;
+  color: var(--accent-dark);
+}
+.card h2 {
+  margin: 4px 0 8px;
+  font-size: 34px;
+}
+.card p {
+  margin: 8px 0 18px;
+  font-size: 19px;
+}
+.emoji {
+  font-size: 56px;
+}
+.title-hero {
+  width: 110px;
+  animation: bounce 1.2s ease-in-out infinite;
+}
+.title-enemy {
+  position: absolute;
+  right: 18px;
+  bottom: -18px;
+  width: 64px;
+  animation: wobble 2s ease-in-out infinite;
+}
+.hint {
+  font-size: 15px !important;
+  opacity: 0.7;
+}
+.big-button {
+  display: block;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  border-radius: 18px;
+  background: var(--accent);
+  color: white;
+  font: inherit;
+  font-size: 26px;
+  font-weight: 700;
+  box-shadow: 0 6px 0 var(--accent-dark);
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+.big-button:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--accent-dark);
+}
+.small-button {
+  margin-top: 14px;
+  padding: 6px 16px;
+  border: none;
+  background: none;
+  font: inherit;
+  font-size: 18px;
+  color: var(--ink);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+/* ---- Touch buttons (only on touch screens) ---- */
+.touch-controls {
+  display: none;
+}
+@media (pointer: coarse) {
+  .touch-controls {
+    position: absolute;
+    left: 20px;
+    right: 20px;
+    bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    pointer-events: none;
+  }
+}
+.pad-group {
+  display: flex;
+  gap: 16px;
+}
+.pad {
+  pointer-events: auto;
+  width: 84px;
+  height: 84px;
+  border: 3px solid rgba(255, 255, 255, 0.9);
+  border-radius: 50%;
+  background: rgba(43, 45, 66, 0.35);
+  color: white;
+  font-size: 34px;
+  touch-action: none;
+}
+.pad:active {
+  background: rgba(43, 45, 66, 0.6);
+}
+.pad-jump {
+  width: 100px;
+  height: 100px;
+  background: rgba(255, 107, 107, 0.65);
+  font-size: 44px;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop-in {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+}
+@keyframes bounce {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+@keyframes wobble {
+  50% {
+    transform: scaleY(0.9) scaleX(1.08);
+  }
+}
