@@ -5,6 +5,7 @@ import { coin, heart, flag } from './items.js'
 import { grass, dirt, platform, bonus, bonusUsed, spikes } from './tiles.js'
 import { cloud, hills } from './background.js'
 import { COSTUME_ART } from './costumes.js'
+import { THEME_ART } from './themeArt.js'
 
 const hero = makeHeroSvg('cat')
 
@@ -14,6 +15,11 @@ const costumeLayers = Object.fromEntries(
     [`${id}Under`, art.under],
     [`${id}Over`, art.over],
   ]),
+)
+
+// World art is named like "snow_top", "snow_dirt", "snow_platform", "snow_hills", "snow_enemy".
+const themeLayers = Object.fromEntries(
+  Object.entries(THEME_ART).flatMap(([id, art]) => Object.entries(art).map(([part, svg]) => [`${id}_${part}`, svg])),
 )
 
 export const SVGS = {
@@ -31,6 +37,7 @@ export const SVGS = {
   cloud,
   hills,
   ...costumeLayers,
+  ...themeLayers,
 }
 
 // The two loaded costume pictures for a costume id (or null for no costume).

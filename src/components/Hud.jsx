@@ -5,7 +5,7 @@ const heartUrl = svgUrl(SVGS.heart)
 const coinUrl = svgUrl(SVGS.coin)
 
 // The bar at the top: hearts, coins, level name and buttons.
-export default function Hud({ hearts, coins, levelName, soundOn, onToggleSound, onPause }) {
+export default function Hud({ hearts, coins, levelName, powers, soundOn, onToggleSound, onPause }) {
   return (
     <div className="hud">
       <div className="hud-pill">
@@ -18,6 +18,13 @@ export default function Hud({ hearts, coins, levelName, soundOn, onToggleSound, 
         <span>{coins}</span>
       </div>
       <div className="hud-pill level-name">{levelName}</div>
+      {powers && (powers.fly || powers.invincible || powers.speed) && (
+        <div className="hud-pill" title="Super powers are on">
+          {powers.fly && '🦅'}
+          {powers.invincible && '🛡️'}
+          {powers.speed && '⚡'}
+        </div>
+      )}
       <div className="hud-spacer" />
       <button className="hud-button" onClick={onToggleSound} aria-label="Sound on or off">
         {soundOn ? '🔊' : '🔇'}

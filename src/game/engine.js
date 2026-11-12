@@ -50,7 +50,8 @@ function makeEnemy(x, y) {
   return { x, y, w: ENEMY_W, h: ENEMY_H, vx: -1, vy: 0, onGround: false, squish: 0, dead: false }
 }
 
-// options: { costume, unlocked: [costume ids already found], random: () => 0..1 }
+// options: { costume, unlocked: [costume ids already found], random: () => 0..1,
+//            powers: { fly, invincible, speed } (admin super powers) }
 export function createGame(level, settings, options = {}) {
   const T = settings.tileSize
   const world = parseLevel(level, T)
@@ -77,6 +78,7 @@ export function createGame(level, settings, options = {}) {
     unlocked: new Set(options.unlocked ?? []),
     lastReward: null, // what the last treasure chest gave
     random: options.random ?? Math.random,
+    powers: options.powers ?? {},
     status: 'playing', // 'playing' | 'won' | 'gameover'
     particles: [],
     events: [], // sounds/HUD updates for this frame, e.g. 'jump', 'coin'
@@ -158,7 +160,7 @@ function overlaps(a, b) {
 
 function hurt(game, fromX) {
   const hero = game.hero
-  if (hero.invincible > 0 || game.status !== 'playing') return
+  if (hero.invincible > 0 || game.powers.invincible || game.status !== 'playing') return
   game.hearts -= 1
   game.events.push('hurt')
   if (game.hearts <= 0) {
@@ -193,8 +195,8 @@ export function step(game, input) {
   // --- Hero movement ---
   const dir = (input.right ? 1 : 0) - (input.left ? 1 : 0)
   if (dir !== 0) hero.facing = dir
-  const target = dir * s.runSpeed
-  hero.vx += (target - hero.vx) * (hero.onGround ? 0.25 : 0.12)
+  const target = dir * s.runSpeed * (game.powers.speed ? 1.8 : 1)
+  hero.vx += (target - hero.vx) * (hero.onGround ? s.groundGrip : s.airGrip)
 
   const jumpPressed = input.jump && !game.prevJump
   game.prevJump = input.jump
@@ -210,6 +212,7 @@ export function step(game, input) {
   // Let go of jump early for a smaller hop.
   hero.vy += s.gravity * (!input.jump && hero.vy < 0 ? 2 : 1)
   hero.vy = Math.min(hero.vy, s.maxFallSpeed)
+  if (game.powers.fly && input.jump) hero.vy = Math.max(hero.vy - 1.6, -7) // 🦅 flying!
 
   moveX(hero, world, T)
   const bump = moveY(hero, world, T)
@@ -281,6 +284,10 @@ export function step(game, input) {
 
   // --- Falling into a pit ---
   if (hero.y > world.height * T + 60 && game.status === 'playing') {
+    if (game.powers.invincible) {
+      respawn(game)
+      return game
+    }
     game.hearts -= 1
     game.events.push('hurt')
     if (game.hearts <= 0) {

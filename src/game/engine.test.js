@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import { createGame, step } from './engine.js'
 import { SETTINGS } from './settings.js'
-import { LEVELS } from './levels/index.js'
+import { LEVELS, levelSettings } from './levels/index.js'
+import { THEMES } from './themes.js'
+import { botInput, createBrain } from './bot.js'
 import { COSTUMES } from './costumes.js'
 
 const ALLOWED = new Set(['.', '#', '=', 'B', 'o', 'E', 'S', 'P', 'F'])
@@ -14,6 +16,12 @@ function run(game, input, frames) {
 
 // Guard rails for hand-drawn levels.
 describe.each(LEVELS.map((l, i) => [i + 1, l]))('level %i', (_, level) => {
+  it('has an id, a world and a price', () => {
+    expect(level.id).toBeTruthy()
+    expect(LEVELS.filter((l) => l.id === level.id)).toHaveLength(1)
+    expect(THEMES[level.theme]).toBeTruthy()
+    expect(level.price).toBeGreaterThanOrEqual(0)
+  })
   it('has a name and rows of equal length', () => {
     expect(level.name).toBeTruthy()
     const widths = new Set(level.map.map((r) => r.length))
@@ -29,6 +37,20 @@ describe.each(LEVELS.map((l, i) => [i + 1, l]))('level %i', (_, level) => {
     const count = (ch) => level.map.join('').split(ch).length - 1
     expect(count('P')).toBe(1)
     expect(count('F')).toBe(1)
+  })
+  it('can be beaten by the robot player', () => {
+    // If this fails after changing a level, something may be impossible to jump over
+    // (like a platform right above a pit, or spikes right before a pit).
+    let wins = 0
+    for (let trial = 0; trial < 3; trial++) {
+      let seed = trial + 1
+      const random = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+      const game = createGame(level, levelSettings(level), { random })
+      const brain = createBrain()
+      for (let f = 0; f < 6000 && game.status === 'playing'; f++) step(game, botInput(game, brain))
+      if (game.status === 'won') wins += 1
+    }
+    expect(wins).toBeGreaterThanOrEqual(2)
   })
   it('starts the hero standing on ground', () => {
     const game = run(createGame(level, SETTINGS), idle, 30)

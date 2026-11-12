@@ -4,6 +4,7 @@
 //
 // Units: 1 block = 1 unit. x goes right, y goes up, z comes toward you.
 import * as THREE from 'three'
+import { getTheme } from './themes.js'
 
 const SOLID = new Set(['#', '=', 'B', 'b'])
 const GROUND_DEPTH = 3 // ground blocks are deep, so you see a meadow on top
@@ -18,9 +19,12 @@ export const CAMERA = {
 }
 
 // options.intro = false skips the camera swoop at the start (handy for testing).
+// options.theme = which world to draw (see themes.js).
 export function createRenderer3D(canvas, game, art, options = {}) {
   const intro = options.intro ?? true
-  const { world, T, settings: s } = game
+  const themeId = options.theme ?? 'meadow'
+  const theme = getTheme(themeId)
+  const { world, T } = game
   const H = world.height
   const toY = (py) => H - py / T // pixel y (down) → 3D y (up)
 
@@ -31,12 +35,14 @@ export function createRenderer3D(canvas, game, art, options = {}) {
   const maxAniso = renderer.capabilities.getMaxAnisotropy()
 
   const scene = new THREE.Scene()
-  scene.background = gradientTexture(s.skyTop, s.skyBottom)
-  scene.fog = new THREE.Fog(s.skyBottom, 30, 75)
+  scene.background = gradientTexture(theme.skyTop, theme.skyBottom)
+  scene.fog = new THREE.Fog(theme.fog ?? theme.skyBottom, theme.fog ? 22 : 30, theme.fog ? 70 : 75)
   const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 300)
 
   // ---- Lights ----
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x9ccf7a, 1.9))
+  const hemi = { sea: [0xa8e8ff, 0x2a6f97, 1.8], space: [0xc8b8ff, 0x3c2a6b, 1.5], candy: [0xfff0f6, 0xffafcc, 1.9] }
+  const [hemiSky, hemiGround, hemiPower] = hemi[themeId] ?? [0xffffff, 0x9ccf7a, 1.9]
+  scene.add(new THREE.HemisphereLight(hemiSky, hemiGround, hemiPower))
   const sun = new THREE.DirectionalLight(0xfff1d6, 2.2)
   sun.castShadow = true
   sun.shadow.mapSize.set(2048, 2048)
@@ -73,12 +79,13 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     return m
   }
 
-  const grassTop = lambert(canvasTex(grassTopCanvas(), [1, GROUND_DEPTH]))
-  const grassFront = lambert(tex(art.grass))
-  const grassSide = lambert(tex(art.grass, { repeat: [GROUND_DEPTH, 1] }))
-  const dirt = lambert(tex(art.dirt))
-  const dirtSide = lambert(tex(art.dirt, { repeat: [GROUND_DEPTH, 1] }))
-  const platformMat = lambert(tex(art.platform))
+  const themed = (part) => art[`${themeId}_${part}`]
+  const grassTop = lambert(canvasTex(grassTopCanvas(theme.topColor, theme.topSpeckles), [1, GROUND_DEPTH]))
+  const grassFront = lambert(tex(themed('top')))
+  const grassSide = lambert(tex(themed('top'), { repeat: [GROUND_DEPTH, 1] }))
+  const dirt = lambert(tex(themed('dirt')))
+  const dirtSide = lambert(tex(themed('dirt'), { repeat: [GROUND_DEPTH, 1] }))
+  const platformMat = lambert(tex(themed('platform')))
   const chestMat = lambert(tex(art.bonus))
   const chestUsedMat = lambert(tex(art.bonusUsed))
   // Box faces are in this order: right, left, top, bottom, front, back.
@@ -184,7 +191,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
   const meadowW = world.width + 80
   const meadow = new THREE.Mesh(
     new THREE.PlaneGeometry(meadowW, 60),
-    new THREE.MeshLambertMaterial({ color: 0x7ed56f }),
+    new THREE.MeshLambertMaterial({ color: theme.groundColor }),
   )
   meadow.rotation.x = -Math.PI / 2
   meadow.position.set(world.width / 2, groundTopY() - 0.02, -GROUND_DEPTH + 0.5 - 30)
@@ -192,10 +199,9 @@ export function createRenderer3D(canvas, game, art, options = {}) {
   scene.add(meadow)
   disposables.push(meadow.geometry, meadow.material)
 
-  addScenery()
 
   const hillsMat = new THREE.MeshBasicMaterial({
-    map: tex(art.hills, { w: 512, h: 200, repeat: [meadowW / 14, 1] }),
+    map: tex(themed('hills'), { w: 512, h: 200, repeat: [meadowW / 14, 1] }),
     transparent: true,
     depthWrite: false,
   })
@@ -204,11 +210,11 @@ export function createRenderer3D(canvas, game, art, options = {}) {
   scene.add(hills)
   disposables.push(hills.geometry, hillsMat)
 
-  const cloudMat = new THREE.MeshBasicMaterial({ map: tex(art.cloud, { w: 320, h: 140 }), transparent: true, depthWrite: false, fog: false })
+  const cloudMat = new THREE.MeshBasicMaterial({ map: tex(art.cloud, { w: 320, h: 140 }), color: theme.clouds ?? 0xffffff, transparent: true, depthWrite: false, fog: false })
   const cloudGeo = new THREE.PlaneGeometry(6, 2.6)
   disposables.push(cloudMat, cloudGeo)
   const clouds = []
-  for (let x = -20; x < world.width + 40; x += 11) {
+  for (let x = -20; theme.clouds && x < world.width + 40; x += 11) {
     const cl = new THREE.Mesh(cloudGeo, cloudMat)
     const r = hash(x)
     cl.position.set(x + r * 5, H + 1 + r * 4, -34 - r * 8)
@@ -219,8 +225,9 @@ export function createRenderer3D(canvas, game, art, options = {}) {
 
   const sunDisc = new THREE.Mesh(
     new THREE.CircleGeometry(3, 32),
-    new THREE.MeshBasicMaterial({ color: 0xffec8c, fog: false }),
+    new THREE.MeshBasicMaterial({ color: theme.sun ?? 0xffffff, fog: false }),
   )
+  sunDisc.visible = !!theme.sun
   scene.add(sunDisc)
   disposables.push(sunDisc.geometry, sunDisc.material)
 
@@ -245,7 +252,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
 
   const enemyGeo = new THREE.PlaneGeometry(40 / 48, 36 / 48)
   enemyGeo.translate(0, 18 / 48, 0)
-  const enemyMat = new THREE.MeshBasicMaterial({ map: tex(art.enemy, { w: 160, h: 144 }), alphaTest: 0.5, side: THREE.DoubleSide })
+  const enemyMat = new THREE.MeshBasicMaterial({ map: tex(themed('enemy'), { w: 160, h: 144 }), alphaTest: 0.5, side: THREE.DoubleSide })
   disposables.push(enemyGeo, enemyMat)
   const enemyMeshes = world.enemies.map((e) => {
     const mesh = new THREE.Mesh(enemyGeo, enemyMat)
@@ -341,61 +348,231 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     mesh.scale.x = flip ? -Math.abs(mesh.scale.x) : Math.abs(mesh.scale.x)
   }
 
-  function addScenery() {
-    const trunkGeo = new THREE.CylinderGeometry(0.15, 0.2, 1.4, 8)
-    const leafGeo = new THREE.SphereGeometry(1, 14, 10)
-    const trunkMat = new THREE.MeshLambertMaterial({ color: 0x8d5524 })
-    const leafMats = [0x57c84d, 0x3fae49, 0x7ed957].map((c) => new THREE.MeshLambertMaterial({ color: c }))
-    const stemGeo = new THREE.CylinderGeometry(0.02, 0.02, 0.3, 4)
-    const petalGeo = new THREE.SphereGeometry(0.09, 8, 6)
-    const stemMat = new THREE.MeshLambertMaterial({ color: 0x3a8f3a })
-    const petalMats = [0xff7aa2, 0xffd23f, 0xffffff, 0x9b5de5].map((c) => new THREE.MeshLambertMaterial({ color: c }))
-    const bushGeo = new THREE.SphereGeometry(0.45, 12, 8)
-    disposables.push(trunkGeo, leafGeo, trunkMat, stemGeo, petalGeo, stemMat, bushGeo, ...leafMats, ...petalMats)
-    const gy = groundTopY()
+  // ---- Scenery for each world ----
+  const sceneMat = (color, extra = {}) => {
+    const m = new THREE.MeshLambertMaterial({ color, ...extra })
+    disposables.push(m)
+    return m
+  }
+  const sceneGeo = (g) => {
+    disposables.push(g)
+    return g
+  }
+  const shapes = {
+    trunk: sceneGeo(new THREE.CylinderGeometry(0.15, 0.2, 1.4, 8)),
+    ball: sceneGeo(new THREE.SphereGeometry(1, 14, 10)),
+    cone: sceneGeo(new THREE.ConeGeometry(1, 1, 10)),
+    stick: sceneGeo(new THREE.CylinderGeometry(0.05, 0.05, 1, 6)),
+    disc: sceneGeo(new THREE.CylinderGeometry(0.7, 0.7, 0.14, 24).rotateX(Math.PI / 2)),
+    dome: sceneGeo(new THREE.SphereGeometry(1, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2)),
+    rock: sceneGeo(new THREE.DodecahedronGeometry(1)),
+    crystal: sceneGeo(new THREE.OctahedronGeometry(1)),
+    star5: sceneGeo(new THREE.CylinderGeometry(1, 1, 0.3, 5)),
+    weed: sceneGeo(new THREE.BoxGeometry(0.12, 1, 0.05).translate(0, 0.5, 0)),
+  }
+  const swaying = [] // seaweed that waves in the water
+  const skyThings = new THREE.Group() // planets: they move with the camera
+  scene.add(skyThings)
 
-    // Trees on the meadow behind the level.
+  const mesh = (shape, material, x = 0, y = 0, z = 0, sx = 1, sy = sx, sz = sx) => {
+    const m = new THREE.Mesh(shapes[shape], material)
+    m.position.set(x, y, z)
+    m.scale.set(sx, sy, sz)
+    return m
+  }
+  const group = (...children) => {
+    const g = new THREE.Group()
+    g.add(...children)
+    return g
+  }
+  const pick = (list, r) => list[Math.floor(r * list.length) % list.length]
+
+  function addScenery() {
+    const brown = sceneMat(0x8d5524)
+    const leaves = [0x57c84d, 0x3fae49, 0x7ed957].map((c) => sceneMat(c))
+    const petals = [0xff7aa2, 0xffd23f, 0xffffff, 0x9b5de5].map((c) => sceneMat(c))
+    const stem = sceneMat(0x3a8f3a)
+    const snow = sceneMat(0xffffff)
+    const pine = [0x2d6a4f, 0x40916c].map((c) => sceneMat(c))
+    const orange = sceneMat(0xff8c42)
+    const black = sceneMat(0x2b2d42)
+    const candyColors = [0xff4d6d, 0x4cc9f0, 0xffd23f, 0x9b5de5, 0x7ee26f].map((c) => sceneMat(c))
+    const swirl = sceneMat(0xffffff, { map: canvasTex(swirlCanvas()) })
+    const coralColors = [0xff7f6e, 0xf15bb5, 0xffd23f, 0xb388eb].map((c) => sceneMat(c))
+    const weedMat = sceneMat(0x2a9d8f, { side: THREE.DoubleSide })
+    const moonRock = [0x9a9aae, 0x7d7d93].map((c) => sceneMat(c))
+    const glow = [0x3ec1d3, 0xf15bb5, 0xa6ecf5].map((c) => {
+      const m = new THREE.MeshBasicMaterial({ color: c })
+      disposables.push(m)
+      return m
+    })
+
+    // Big things on the meadow behind the level.
+    const big = {
+      trees: (r) =>
+        group(
+          mesh('trunk', brown, 0, 0.7, 0),
+          mesh('ball', pick(leaves, r), 0, 1.9, 0, 1, 1.1, 1),
+          mesh('ball', pick(leaves, r + 0.4), 0.3, 2.6, 0.1, 0.65),
+        ),
+      pines: (r) =>
+        r > 0.85
+          ? group(
+              mesh('ball', snow, 0, 0.5, 0, 0.55),
+              mesh('ball', snow, 0, 1.15, 0, 0.4),
+              mesh('ball', snow, 0, 1.65, 0, 0.3),
+              mesh('cone', orange, 0, 1.65, 0.35, 0.06, 0.25, 0.06).rotateX(Math.PI / 2),
+              mesh('ball', black, -0.1, 1.75, 0.27, 0.04),
+              mesh('ball', black, 0.1, 1.75, 0.27, 0.04),
+            )
+          : group(
+              mesh('trunk', brown, 0, 0.4, 0, 1, 0.6, 1),
+              mesh('cone', pick(pine, r), 0, 1.4, 0, 1.1, 1.6, 1.1),
+              mesh('cone', pick(pine, r + 0.5), 0, 2.4, 0, 0.8, 1.3, 0.8),
+              mesh('cone', snow, 0, 3.0, 0, 0.42, 0.55, 0.42),
+            ),
+      candy: (r) =>
+        r > 0.7
+          ? group(mesh('dome', pick(candyColors, r), 0, 0, 0, 1.1, 1.2, 1.1))
+          : group(mesh('stick', snow, 0, 1.1, 0, 1, 2.2, 1), mesh('disc', swirl, 0, 2.6, 0, 1.3, 1.3, 1.3)),
+      coral: (r) => {
+        const color = pick(coralColors, r)
+        const g = group(mesh('stick', color, 0, 0.8, 0, 3, 1.6, 3))
+        for (let i = 0; i < 3; i++) {
+          const branch = mesh('stick', color, (i - 1) * 0.35, 1.5, 0, 2.2, 1, 2.2)
+          branch.rotation.z = (i - 1) * 0.6
+          g.add(branch, mesh('ball', color, (i - 1) * 0.65, 2.0, 0, 0.16))
+        }
+        return g
+      },
+      space: (r) =>
+        r > 0.75
+          ? group(mesh('crystal', pick(glow, r), 0, 0.9, 0, 0.35, 0.9, 0.35), mesh('crystal', pick(glow, r + 0.3), 0.4, 0.5, 0, 0.2, 0.5, 0.2))
+          : group(mesh('rock', pick(moonRock, r), 0, 0.3, 0, 0.9, 0.6, 0.8)),
+    }[theme.scenery]
+
+    // Small things on top of the ground blocks, behind where you run.
+    const small = {
+      trees: (r, tx) =>
+        r < 0.25
+          ? [mesh('ball', pick(leaves, r), 0, 0.2, -1.9, 0.54, 0.36, 0.45)]
+          : r < 0.6
+            ? [0, 1].flatMap((i) => [
+                mesh('stick', stem, i * 0.45 - 0.25, 0.15, -0.9 - hash(tx + i) * 1.4, 0.4, 0.3, 0.4),
+                mesh('ball', pick(petals, hash(tx + i)), i * 0.45 - 0.25, 0.33, -0.9 - hash(tx + i) * 1.4, 0.09),
+              ])
+            : [],
+      pines: (r) => (r < 0.35 ? [mesh('dome', snow, 0, 0, -1.8, 0.5, 0.25, 0.4)] : []),
+      candy: (r) =>
+        r < 0.3
+          ? [mesh('dome', pick(candyColors, r * 3), 0, 0, -1.7, 0.3)]
+          : r < 0.45
+            ? [mesh('stick', snow, 0, 0.35, -1.9, 1, 0.7, 1), mesh('disc', swirl, 0, 0.8, -1.9, 0.35)]
+            : [],
+      coral: (r) => {
+        if (r < 0.4) {
+          return [0, 1, 2].map((i) => {
+            const w = mesh('weed', weedMat, i * 0.2 - 0.2, 0, -1.6 - i * 0.2, 1, 1.2 + hash(r + i), 1)
+            w.userData.phase = r * 10 + i
+            swaying.push(w)
+            return w
+          })
+        }
+        return r < 0.55 ? [mesh('star5', orange, 0, 0.03, -1.2, 0.18, 0.2, 0.18)] : []
+      },
+      space: (r) =>
+        r < 0.3
+          ? [mesh('rock', pick(moonRock, r), 0, 0.1, -1.7, 0.25, 0.18, 0.25)]
+          : r < 0.4
+            ? [mesh('crystal', pick(glow, r), 0, 0.25, -1.8, 0.12, 0.3, 0.12)]
+            : [],
+    }[theme.scenery]
+
+    const gy = groundTopY()
     for (let x = -10; x < world.width + 20; x += 4) {
       const r = hash(x + 0.5)
       if (r < 0.35) continue
-      const tree = new THREE.Group()
-      const trunk = new THREE.Mesh(trunkGeo, trunkMat)
-      trunk.position.y = 0.7
-      const leaves = new THREE.Mesh(leafGeo, leafMats[Math.floor(r * 3) % 3])
-      leaves.position.y = 1.9
-      leaves.scale.set(1, 1.1, 1)
-      const top = new THREE.Mesh(leafGeo, leafMats[(Math.floor(r * 3) + 1) % 3])
-      top.position.set(0.3, 2.6, 0.1)
-      top.scale.setScalar(0.65)
-      tree.add(trunk, leaves, top)
-      for (const m of [trunk, leaves, top]) m.castShadow = m.receiveShadow = true
-      tree.position.set(x + r * 3, gy, -GROUND_DEPTH - 2 - r * 9)
-      tree.scale.setScalar(0.8 + r * 0.7)
-      scene.add(tree)
+      const thing = big(r)
+      thing.position.set(x + r * 3, gy, -GROUND_DEPTH - 2 - r * 9)
+      thing.scale.multiplyScalar(0.8 + r * 0.7)
+      thing.traverse((o) => o.isMesh && (o.castShadow = o.receiveShadow = true))
+      scene.add(thing)
     }
-
-    // Flowers and bushes on top of the ground blocks, behind where you run.
     for (const [tx, ty] of cells.groundTop) {
       const r = hash(tx * 7.1 + ty)
-      const y = H - ty
-      if (r < 0.25) {
-        const bush = new THREE.Mesh(bushGeo, leafMats[tx % 3])
-        bush.position.set(tx + 0.5, y + 0.2, -1.9)
-        bush.scale.set(1.2, 0.8, 1)
-        bush.castShadow = true
-        scene.add(bush)
-      } else if (r < 0.6) {
-        for (let i = 0; i < 2; i++) {
-          const z = -0.9 - hash(tx + i) * 1.4
-          const stem = new THREE.Mesh(stemGeo, stemMat)
-          stem.position.set(tx + 0.25 + i * 0.45, y + 0.15, z)
-          const petal = new THREE.Mesh(petalGeo, petalMats[(tx + i) % 4])
-          petal.position.set(tx + 0.25 + i * 0.45, y + 0.33, z)
-          scene.add(stem, petal)
-        }
-      }
+      const things = small(r, tx)
+      if (!things.length) continue
+      const g = group(...things)
+      g.position.set(tx + 0.5, H - ty, 0)
+      g.traverse((o) => o.isMesh && (o.castShadow = true))
+      scene.add(g)
+    }
+
+    // Planets in the sky for outer space.
+    if (theme.scenery === 'space') {
+      const planetMat = new THREE.MeshLambertMaterial({ color: 0xf4a261, fog: false })
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xffd6a5, side: THREE.DoubleSide, fog: false })
+      const moonMat = new THREE.MeshLambertMaterial({ color: 0x90e0ef, fog: false })
+      const ringGeo = new THREE.RingGeometry(9, 13, 48)
+      disposables.push(planetMat, ringMat, moonMat, ringGeo)
+      const planet = group(new THREE.Mesh(shapes.ball, planetMat), new THREE.Mesh(ringGeo, ringMat))
+      planet.children[0].scale.setScalar(6.5)
+      planet.children[1].rotation.x = 1.2
+      planet.position.set(-14, H + 9, -110)
+      const moon = new THREE.Mesh(shapes.ball, moonMat)
+      moon.scale.setScalar(2.4)
+      moon.position.set(22, H + 13, -100)
+      skyThings.add(planet, moon) // these follow the camera, so they feel very far away
     }
   }
+
+  // Falling snow, rising bubbles, or twinkling stars.
+  function addWeather() {
+    const kind = theme.weather
+    if (!kind) return null
+    const count = kind === 'stars' ? 700 : 450
+    const pos = new Float32Array(count * 3)
+    for (let i = 0; i < count; i++) {
+      if (kind === 'stars') {
+        pos.set([hash(i) * (world.width + 160) - 80, H - 4 + hash(i + 900) * 40, -55 - hash(i + 1700) * 30], i * 3)
+      } else {
+        pos.set([hash(i) * 36 - 18, hash(i + 900) * (H + 6), hash(i + 1700) * 10 - 7], i * 3)
+      }
+    }
+    const geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+    const material = new THREE.PointsMaterial({
+      color: { snow: 0xffffff, bubbles: 0xe0f7ff, stars: 0xffffff }[kind],
+      size: { snow: 0.16, bubbles: 0.22, stars: 0.5 }[kind],
+      map: canvasTex(dotCanvas(kind === 'bubbles')),
+      transparent: true,
+      depthWrite: false,
+      fog: kind !== 'stars',
+    })
+    disposables.push(geo, material)
+    const points = new THREE.Points(geo, material)
+    scene.add(points)
+    return { kind, points, pos, count }
+  }
+
+  function updateWeather(time) {
+    for (const w of swaying) w.rotation.z = Math.sin(time * 0.03 + w.userData.phase) * 0.18
+    if (!weather || weather.kind === 'stars') return
+    const { pos, count } = weather
+    const top = H + 6
+    for (let i = 0; i < count; i++) {
+      let y = pos[i * 3 + 1] + (weather.kind === 'snow' ? -0.025 : 0.022)
+      if (y < 0) y += top
+      if (y > top) y -= top
+      pos[i * 3 + 1] = y
+      pos[i * 3] += Math.sin(time * 0.02 + i) * 0.004
+    }
+    weather.points.geometry.attributes.position.needsUpdate = true
+    weather.points.position.x = cam.x
+  }
+
+  addScenery()
+  const weather = addWeather()
 
   // ---- Draw one frame ----
   function render() {
@@ -428,6 +605,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     }
 
     for (const cl of clouds) cl.mesh.position.x = cl.x + ((time * 0.01) % 20)
+    updateWeather(time)
 
     // Hero
     const hx = (hero.x + hero.w / 2) / T
@@ -534,6 +712,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     sun.position.set(cam.x - 8, cam.y + 16, 12)
     sun.target.position.set(cam.x, cam.y, 0)
     sunDisc.position.set(cam.x + 18, H + 10, -70)
+    skyThings.position.x = cam.x
     sunDisc.lookAt(camera.position)
   }
 
@@ -567,16 +746,55 @@ function gradientTexture(top, bottom) {
   return t
 }
 
-function grassTopCanvas() {
+function grassTopCanvas(color, speckles) {
   const c = document.createElement('canvas')
   c.width = c.height = 64
   const ctx = c.getContext('2d')
-  ctx.fillStyle = '#62cc52'
+  ctx.fillStyle = color
   ctx.fillRect(0, 0, 64, 64)
-  ctx.fillStyle = '#7ee26f'
-  for (let i = 0; i < 40; i++) ctx.fillRect(hash(i) * 64, hash(i + 50) * 64, 2, 4)
-  ctx.fillStyle = '#4fb341'
-  for (let i = 0; i < 30; i++) ctx.fillRect(hash(i + 100) * 64, hash(i + 150) * 64, 2, 3)
+  speckles.forEach((s, k) => {
+    ctx.fillStyle = s
+    for (let i = 0; i < 35; i++) ctx.fillRect(hash(i + k * 100) * 64, hash(i + k * 100 + 50) * 64, 2, 3.5)
+  })
+  return c
+}
+
+function swirlCanvas() {
+  const c = document.createElement('canvas')
+  c.width = c.height = 128
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 128, 128)
+  ctx.lineWidth = 10
+  ;['#ff4d6d', '#4cc9f0', '#ffd23f'].forEach((color, k) => {
+    ctx.strokeStyle = color
+    ctx.beginPath()
+    for (let a = 0; a < Math.PI * 6; a += 0.1) {
+      const r = a * 3.2
+      const t = a + (k * Math.PI * 2) / 3
+      ctx.lineTo(64 + Math.cos(t) * r, 64 + Math.sin(t) * r)
+    }
+    ctx.stroke()
+  })
+  return c
+}
+
+function dotCanvas(ring) {
+  const c = document.createElement('canvas')
+  c.width = c.height = 32
+  const ctx = c.getContext('2d')
+  ctx.beginPath()
+  ctx.arc(16, 16, 13, 0, Math.PI * 2)
+  if (ring) {
+    ctx.strokeStyle = '#ffffff'
+    ctx.lineWidth = 3
+    ctx.stroke()
+    ctx.fillStyle = 'rgba(255,255,255,0.25)'
+    ctx.fill()
+  } else {
+    ctx.fillStyle = '#ffffff'
+    ctx.fill()
+  }
   return c
 }
 

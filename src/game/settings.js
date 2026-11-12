@@ -12,6 +12,8 @@ export const SETTINGS = {
   jumpPower: 14, // bigger = higher jumps
   gravity: 0.55, // bigger = fall faster (try 0.3 for moon jumping!)
   maxFallSpeed: 14,
+  groundGrip: 0.25, // how fast you speed up/stop on the ground (small = slippery)
+  airGrip: 0.12, // how much you can steer in the air
 
   // ---- Enemies ----
   enemySpeed: 1.2,
@@ -34,6 +36,9 @@ export const SETTINGS = {
     { reward: 'costume', chance: 25 },
     { reward: 'nothing', chance: 20 },
   ],
+
+  // ---- Coins and worlds ----
+  allLevelsBonus: 100, // coins you win for beating every world
 
   // ---- Sound ----
   soundOn: true,

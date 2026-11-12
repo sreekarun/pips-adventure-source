@@ -5,7 +5,8 @@ import { costumeImages, loadArt } from '../game/art/index.js'
 import { composeHero } from '../game/art/composeHero.js'
 import { getCostume } from '../game/costumes.js'
 import { playSound } from '../game/sounds.js'
-import { SETTINGS } from '../game/settings.js'
+import { levelSettings } from '../game/levels/index.js'
+import { botInput, createBrain } from '../game/bot.js'
 import Hud from './Hud.jsx'
 import TouchControls from './TouchControls.jsx'
 
@@ -35,13 +36,27 @@ function rewardMessage(reward) {
   return '💨 Empty! Maybe next time…'
 }
 
-export default function Game({ level, levelNumber, heroSvg, costume, unlocked, soundOn, onToggleSound, onCostume, onEnd }) {
+// bot = { name } makes a computer player play instead of you (Spectate mode).
+export default function Game({
+  level,
+  label,
+  heroSvg,
+  costume,
+  unlocked,
+  powers,
+  bot,
+  soundOn,
+  onToggleSound,
+  onCostume,
+  onEnd,
+  children,
+}) {
   const canvasRef = useRef(null)
   const input = useRef({ left: false, right: false, jump: false })
   const paused = useRef(false)
   const soundRef = useRef(soundOn)
   // Read these once when the level starts (changing them mid-level must not restart it).
-  const startRef = useRef({ costume, unlocked, onCostume, onEnd })
+  const startRef = useRef({ costume, unlocked, powers, bot, onCostume, onEnd })
   const [hud, setHud] = useState(null)
   const [toast, setToast] = useState(null)
   const [isPaused, setIsPaused] = useState(false)
@@ -87,7 +102,12 @@ export default function Game({ level, levelNumber, heroSvg, costume, unlocked, s
     let renderer = null
     let observer = null
     const start = startRef.current
-    const game = createGame(level, SETTINGS, { costume: start.costume, unlocked: start.unlocked })
+    const game = createGame(level, levelSettings(level), {
+      costume: start.costume,
+      unlocked: start.unlocked,
+      powers: start.bot ? {} : start.powers,
+    })
+    const brain = start.bot ? createBrain() : null
     const canvas = canvasRef.current
 
     const pushHud = () => setHud({ hearts: game.hearts, coins: game.coins })
@@ -98,7 +118,7 @@ export default function Game({ level, levelNumber, heroSvg, costume, unlocked, s
       try {
         // ?nointro in the address skips the opening camera swoop (for testing).
         const intro = !new URLSearchParams(window.location.search).has('nointro')
-        renderer = createRenderer3D(canvas, game, art, { intro })
+        renderer = createRenderer3D(canvas, game, art, { intro, theme: level.theme })
       } catch (err) {
         console.error(err)
         setError('This game needs 3D graphics (WebGL), and this browser could not start them.')
@@ -125,7 +145,7 @@ export default function Game({ level, levelNumber, heroSvg, costume, unlocked, s
           acc -= FRAME
           if (paused.current) continue
           const before = game.status
-          step(game, input.current)
+          step(game, brain ? botInput(game, brain) : input.current)
           events.push(...game.events)
           if (before === 'playing' && game.status !== 'playing') {
             endTimer = setTimeout(
@@ -170,7 +190,8 @@ export default function Game({ level, levelNumber, heroSvg, costume, unlocked, s
       {hud && (
         <Hud
           {...hud}
-          levelName={`${levelNumber}. ${level.name}`}
+          levelName={label}
+          powers={bot ? null : powers}
           soundOn={soundOn}
           onToggleSound={onToggleSound}
           onPause={togglePause}
@@ -199,7 +220,8 @@ export default function Game({ level, levelNumber, heroSvg, costume, unlocked, s
           </div>
         </div>
       )}
-      <TouchControls input={input} />
+      {!bot && <TouchControls input={input} />}
+      {children}
     </div>
   )
 }
