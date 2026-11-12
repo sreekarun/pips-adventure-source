@@ -76,7 +76,7 @@ export function render(ctx, game, art, viewW, viewH) {
     const bob = running ? Math.abs(Math.sin(time * 0.35)) * -3 : 0
     const stretch = hero.onGround ? 1 : 1.06
     const w = 40
-    const h = 52 * stretch
+    const h = w * (art.hero.height / art.hero.width) * stretch
     const x = hero.x + hero.w / 2 - w / 2
     const y = hero.y + hero.h - h + 2 + bob
     drawFlipped(ctx, art.hero, x, y, w, h, hero.facing < 0)

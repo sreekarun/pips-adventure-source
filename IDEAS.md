@@ -8,6 +8,7 @@ Ideas for the game. Claude adds new ones and ticks them off when they're built!
 - [x] Grumbles (grumpy jelly blobs) to squish
 - [x] Spikes, pits, and a finish flag
 - [x] Hearts, sounds, and touch buttons for the iPad
+- [x] Make your own hero: color in Pip, or paint a pixel hero (Anamika's idea!)
 
 ## Want to build 🛠️
-- [ ] (Anamika's ideas go here!)
+- [ ] More hero shapes to color in (bunny? unicorn? robot?)

@@ -26,7 +26,7 @@ Keep a running list of her ideas in `IDEAS.md`: add new ideas she mentions and t
 ## Commands
 
 ```bash
-npm run dev        # start the game at http://localhost:5173 (?play=N jumps straight into level N)
+npm run dev        # start the game at http://localhost:5173 (?play=N jumps into level N, ?maker / ?maker=pixels opens the hero maker)
 npm run check      # lint + tests + production build — run before every commit
 npm test           # tests only
 npx vitest run -t "collects coins"   # run a single test by name
@@ -42,6 +42,7 @@ React + Vite (plain JavaScript, no TypeScript). React only handles screens and b
 - `src/game/engine.js` holds the game rules. It's pure logic with no DOM or React. `createGame(level, settings)` builds the state; `step(game, input)` advances one fixed 1/60 s frame and fills `game.events` (e.g. `'jump'`, `'coin'`, `'hurt'`, `'win'`), which drive sounds and HUD refreshes. Collision is tile-based AABB: the engine moves along X, resolves, then moves along Y and resolves. Solid tiles are listed in the `SOLID` set.
 - `src/game/render.js` draws a game state onto a 2D context (sky, parallax background, tiles, sprites, particles). The camera is computed from the hero position. The engine never draws, and the renderer never changes the game state.
 - `src/components/Game.jsx` owns the loop: a requestAnimationFrame loop with a fixed-timestep accumulator, keyboard input, a ResizeObserver, and device-pixel-ratio scaling. The view is always `viewTilesHigh` tiles tall, and its width follows the screen's shape. It calls `onEnd({status, coins, total})` when the level is won or lost. `App.jsx` switches between the title, playing, won and gameover screens.
+- **Hero maker** (`src/components/HeroMaker.jsx`, reached from the title screen) has two modes. *Color in* recolors Pip: `makeHeroSvg(colors)` in `art/hero.js` fills each `data-part`, and clicks find the part through `closest('[data-part]')`. *Paint pixels* draws a 16×20 grid (`art/pixelHero.js`: `floodFill`, `makePixelSvg`, a `STARTER` drawing made of letters). The result is a design object `{ mode, name, colors, pixels }` (`src/game/heroDesign.js`), saved in localStorage. `designToSvg(design)` becomes the `heroSvg` prop, which `Game.jsx` passes to `loadArt({ hero })`. The renderer keeps the hero's aspect ratio from the image, so a new hero part means adding it to `HERO_PARTS`, `DEFAULT_HERO_COLORS`, and a `data-part` in the SVG. The paint colors live in `art/palette.js`.
 - `src/components/TouchControls.jsx` holds the on-screen pads. They write into the same `input` ref as the keyboard and only appear on `(pointer: coarse)` devices.
 - `src/game/sounds.js` makes sound effects with Web Audio oscillators. Each sound is a list of notes, so there are no audio files.
 

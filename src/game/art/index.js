@@ -14,16 +14,20 @@ export function svgUrl(svg, sharpness = 3) {
   return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(sized)
 }
 
-// Load every drawing as an <img>. Resolves to { hero: Image, coin: Image, ... }
-export function loadArt() {
-  const entries = Object.entries(SVGS).map(
-    ([name, svg]) =>
-      new Promise((resolve, reject) => {
-        const img = new Image()
-        img.onload = () => resolve([name, img])
-        img.onerror = () => reject(new Error(`Could not load art: ${name}`))
-        img.src = svgUrl(svg)
-      }),
-  )
-  return Promise.all(entries).then(Object.fromEntries)
+function loadImage(name, svg) {
+  return new Promise((resolve, reject) => {
+    const img = new Image()
+    img.onload = () => resolve([name, img])
+    img.onerror = () => reject(new Error(`Could not load art: ${name}`))
+    // Small drawings (like 16×20 pixel heroes) get extra sharpness so they don't look blurry.
+    const width = Number(svg.match(/viewBox="[\d.]+ [\d.]+ ([\d.]+)/)[1])
+    img.src = svgUrl(svg, Math.max(3, Math.ceil(160 / width)))
+  })
+}
+
+// Load every drawing as an <img>. Pass `overrides` to swap one, e.g. { hero: myHeroSvg }.
+// Resolves to { hero: Image, coin: Image, ... }
+export function loadArt(overrides = {}) {
+  const all = { ...SVGS, ...overrides }
+  return Promise.all(Object.entries(all).map(([name, svg]) => loadImage(name, svg))).then(Object.fromEntries)
 }

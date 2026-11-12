@@ -19,7 +19,7 @@ const KEYS = {
 
 const FRAME = 1000 / 60
 
-export default function Game({ level, levelNumber, soundOn, onToggleSound, onEnd }) {
+export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSound, onEnd }) {
   const canvasRef = useRef(null)
   const input = useRef({ left: false, right: false, jump: false })
   const paused = useRef(false)
@@ -86,7 +86,7 @@ export default function Game({ level, levelNumber, soundOn, onToggleSound, onEnd
     const pushHud = () => setHud({ hearts: game.hearts, coins: game.coins, total: game.totalCoins })
     pushHud()
 
-    loadArt().then((art) => {
+    loadArt({ hero: heroSvg }).then((art) => {
       if (stopped) return
       let last = performance.now()
       let acc = 0
@@ -123,7 +123,7 @@ export default function Game({ level, levelNumber, soundOn, onToggleSound, onEnd
     }
     // onEnd is intentionally left out: a new function each render must not restart the level.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [level])
+  }, [level, heroSvg])
 
   return (
     <div className="game">

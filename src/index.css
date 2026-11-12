@@ -239,3 +239,215 @@ body,
     transform: scaleY(0.9) scaleX(1.08);
   }
 }
+
+/* ---- Hero maker ---- */
+.maker-button {
+  margin-top: 14px;
+  background: #9b5de5;
+  box-shadow: 0 6px 0 #5a2d91;
+}
+.maker-button:active {
+  box-shadow: 0 2px 0 #5a2d91;
+}
+.overlay:has(.maker-card) {
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+.card.maker-card {
+  width: min(880px, 100%);
+  padding: 20px 24px;
+}
+.maker-card h2 {
+  margin: 0 0 12px;
+  color: #c9184a;
+}
+.tabs {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: #f0ebe0;
+}
+.tab {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 999px;
+  background: none;
+  font: inherit;
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tab.active {
+  background: white;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.12);
+}
+.maker-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 720px) {
+  .maker-body {
+    grid-template-columns: 1fr;
+  }
+}
+.maker-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.maker-side .big-button {
+  font-size: 24px;
+}
+.maker-side .small-button {
+  margin-top: 0;
+}
+.palette {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+}
+.swatch {
+  aspect-ratio: 1;
+  border: 3px solid rgba(0, 0, 0, 0.15);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.swatch.picked {
+  border-color: var(--ink);
+  transform: scale(1.18);
+  box-shadow: 0 0 0 3px white, 0 0 0 5px var(--ink);
+}
+.game-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 10px;
+  border-radius: 16px;
+  background: linear-gradient(var(--sky), var(--sky-light) 75%, #7ee26f 75%);
+  font-size: 15px;
+  font-weight: 600;
+}
+.game-preview img {
+  height: 64px;
+  image-rendering: pixelated;
+}
+.name-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+}
+.name-field input {
+  flex: 1;
+  min-width: 0;
+  padding: 8px 12px;
+  border: 3px solid #e6dfd0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 20px;
+  -webkit-user-select: text;
+  user-select: text;
+}
+.name-field input:focus {
+  outline: none;
+  border-color: #9b5de5;
+}
+.maker-canvas {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.color-in,
+.pixel-painter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+.color-in-hero {
+  width: min(260px, 60vw);
+}
+.color-in-hero svg {
+  display: block;
+  overflow: visible;
+  width: 100%;
+  height: auto;
+}
+.color-in-hero [data-part] {
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+.color-in-hero [data-part]:hover {
+  filter: brightness(1.12);
+}
+.maker-tip {
+  margin: 0 !important;
+  font-size: 16px !important;
+  opacity: 0.7;
+}
+.part-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.chip,
+.tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border: 2px solid #e6dfd0;
+  border-radius: 999px;
+  background: white;
+  font: inherit;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+}
+.tool.active {
+  border-color: #9b5de5;
+  background: #f1e8fc;
+}
+.tool:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.chip-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.2);
+}
+.tool-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.pixel-grid {
+  display: grid;
+  width: min(320px, 70vw);
+  aspect-ratio: 16 / 20;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: crosshair;
+  touch-action: none;
+  background-color: #fff;
+  background-image: conic-gradient(#eee 25%, #fff 0 50%, #eee 0 75%, #fff 0);
+  background-size: calc(200% / 16) calc(200% / 20);
+}
+.pixel {
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
