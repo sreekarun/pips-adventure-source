@@ -82,8 +82,48 @@ Claude asked these questions, and the parent picked:
 
 **Result:** `ed9120a` School is the first world now
 
+---
+
+## Part 3: Saving and sharing the project (parent)
+
 ### Prompt 10: This list
 > Write down all the prompts used so far. it is required for project submission
+
+**Result:** `579066f` Add a list of every prompt used to build the game
+
+### Prompt 11
+> are these committed to git
+
+### Prompt 12
+> what is the remote for this. is it pushed to github ?
+
+### Prompt 13
+> yes, create a private repo and push it
+
+*(The parent logged in to GitHub with `gh auth login`. Claude then created the private repo and pushed every save point to it.)*
+
+### Prompt 14
+> configure git client for me
+
+*(Claude set the computer-wide git name and email, plus a few defaults.)*
+
+### Prompt 15
+> push the changes for this project
+
+*(Nothing new to push: GitHub was already up to date.)*
+
+### Prompt 16
+> can you help me host this project under gh pages
+
+| Question | Answer |
+| --- | --- |
+| A GitHub Pages site is public, and the game shows Anamika's name and her real school. How do you want to go ahead? | Anonymize, then host |
+| The public version uses made-up names and only the built game goes in a separate public repo. The code repo stays private. OK to publish? | Yes, publish it |
+
+**Result:** `6b8946d` Public web version with made-up names, ready for GitHub Pages. The game is live at https://sreekarun.github.io/pips-adventure/
+
+### Prompt 17
+> did you also commit the prompt notes
 
 ---
 
