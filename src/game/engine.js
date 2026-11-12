@@ -1,5 +1,6 @@
 // ⚙️  GAME ENGINE — physics, collisions and rules.
 // Pure logic: no drawing and no React, so it can be tested on its own.
+import { COSTUMES } from './costumes.js'
 
 const SOLID = new Set(['#', '=', 'B', 'b'])
 const HERO_W = 34
@@ -49,7 +50,8 @@ function makeEnemy(x, y) {
   return { x, y, w: ENEMY_W, h: ENEMY_H, vx: -1, vy: 0, onGround: false, squish: 0, dead: false }
 }
 
-export function createGame(level, settings) {
+// options: { costume, unlocked: [costume ids already found], random: () => 0..1 }
+export function createGame(level, settings, options = {}) {
   const T = settings.tileSize
   const world = parseLevel(level, T)
   return {
@@ -71,17 +73,16 @@ export function createGame(level, settings) {
     },
     hearts: settings.hearts,
     coins: 0,
-    totalCoins: world.coins.length + countTiles(world, 'B'),
+    costume: options.costume ?? null,
+    unlocked: new Set(options.unlocked ?? []),
+    lastReward: null, // what the last treasure chest gave
+    random: options.random ?? Math.random,
     status: 'playing', // 'playing' | 'won' | 'gameover'
     particles: [],
     events: [], // sounds/HUD updates for this frame, e.g. 'jump', 'coin'
     time: 0,
     prevJump: false,
   }
-}
-
-function countTiles(world, ch) {
-  return world.grid.reduce((n, row) => n + row.filter((c) => c === ch).length, 0)
 }
 
 export function tileAt(world, tx, ty) {
@@ -213,10 +214,7 @@ export function step(game, input) {
   moveX(hero, world, T)
   const bump = moveY(hero, world, T)
   if (bump && tileAt(world, bump.tx, bump.ty) === 'B') {
-    world.grid[bump.ty][bump.tx] = 'b'
-    game.coins += 1
-    game.events.push('coin')
-    game.particles.push({ kind: 'coin', x: bump.tx * T + T / 2, y: bump.ty * T, vy: -8, life: 30 })
+    openTreasure(game, bump.tx, bump.ty)
   } else if (bump) {
     game.events.push('bump')
   }
@@ -302,8 +300,60 @@ export function step(game, input) {
   return game
 }
 
+// Pick a reward using the chances in settings.treasureChances.
+function pickReward(game) {
+  const table = game.settings.treasureChances
+  const total = table.reduce((n, r) => n + r.chance, 0)
+  let roll = game.random() * total
+  for (const r of table) {
+    roll -= r.chance
+    if (roll < 0) return r
+  }
+  return table[table.length - 1]
+}
+
+function openTreasure(game, tx, ty) {
+  const { T } = game
+  game.world.grid[ty][tx] = 'b'
+  const x = tx * T + T / 2
+  const y = ty * T
+  game.events.push('treasure')
+  let reward = pickReward(game)
+
+  if (reward.reward === 'costume') {
+    const fresh = COSTUMES.filter((c) => !game.unlocked.has(c.id))
+    if (fresh.length) {
+      const costume = fresh[Math.floor(game.random() * fresh.length)]
+      game.unlocked.add(costume.id)
+      game.costume = costume.id
+      game.lastReward = { kind: 'costume', id: costume.id }
+      game.events.push('costume')
+      game.particles.push({ kind: 'sparkle', x, y, vy: -1, life: 20 })
+      game.particles.push({ kind: 'costume', x, y, vy: -3, life: 50 })
+      return
+    }
+    reward = { reward: 'coins', amount: 5 } // you already have every costume!
+  }
+
+  if (reward.reward === 'coins') {
+    game.coins += reward.amount
+    game.lastReward = { kind: 'coins', amount: reward.amount }
+    game.events.push('coin')
+    for (let i = 0; i < Math.min(reward.amount, 10); i++) {
+      const spread = reward.amount === 1 ? 0 : (i / (Math.min(reward.amount, 10) - 1) - 0.5) * 6
+      game.particles.push({ kind: 'coin', x, y, vx: spread, vy: -8 - (i % 3), life: 34 })
+    }
+    return
+  }
+
+  game.lastReward = { kind: 'nothing' }
+  game.events.push('empty')
+  game.particles.push({ kind: 'puff', x, y: y - T / 2, vy: 0, life: 24 })
+}
+
 function updateParticles(game) {
   for (const p of game.particles) {
+    p.x += p.vx ?? 0
     p.y += p.vy
     if (p.kind === 'coin') p.vy += 0.5
     p.life -= 1

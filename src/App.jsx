@@ -1,10 +1,11 @@
 import { useMemo, useState } from 'react'
 import Game from './components/Game.jsx'
 import HeroMaker from './components/HeroMaker.jsx'
+import HeroPicture from './components/HeroPicture.jsx'
 import { LEVELS } from './game/levels/index.js'
 import { SETTINGS } from './game/settings.js'
 import { SVGS, svgUrl } from './game/art/index.js'
-import { designToSvg, loadDesign, saveDesign } from './game/heroDesign.js'
+import { designToSvg, loadDesign, loadUnlocked, saveDesign, saveUnlocked } from './game/heroDesign.js'
 
 const enemyUrl = svgUrl(SVGS.enemy)
 
@@ -28,8 +29,22 @@ export default function App() {
         ? { ...loadDesign(), mode: 'color', shape: 'dog' }
         : loadDesign(),
   )
+  const [unlocked, setUnlocked] = useState(loadUnlocked)
   const heroSvg = useMemo(() => designToSvg(design), [design])
-  const heroUrl = useMemo(() => svgUrl(heroSvg, 12), [heroSvg])
+
+  // Found a costume in a treasure chest: remember it and put it on.
+  const foundCostume = (id) => {
+    setUnlocked((list) => {
+      const next = list.includes(id) ? list : [...list, id]
+      saveUnlocked(next)
+      return next
+    })
+    setDesign((d) => {
+      const next = { ...d, costume: id }
+      saveDesign(next)
+      return next
+    })
+  }
 
   const play = (index) => {
     setLevelIndex(index)
@@ -47,6 +62,9 @@ export default function App() {
           level={LEVELS[levelIndex]}
           levelNumber={levelIndex + 1}
           heroSvg={heroSvg}
+          costume={design.costume}
+          unlocked={unlocked}
+          onCostume={foundCostume}
           soundOn={soundOn}
           onToggleSound={() => setSoundOn((s) => !s)}
           onEnd={(r) => {
@@ -59,7 +77,7 @@ export default function App() {
       {screen === 'title' && (
         <div className="overlay sky">
           <div className="card title-card">
-            <img src={heroUrl} alt={design.name} className="title-hero" />
+            <HeroPicture heroSvg={heroSvg} costume={design.costume} className="title-hero" />
             <h1>{SETTINGS.gameTitle}</h1>
             <p>
               Help <b>{design.name}</b> collect coins and reach the flag!
@@ -70,7 +88,7 @@ export default function App() {
             <button className="big-button maker-button" onClick={() => setScreen('maker')}>
               🎨 Make your hero
             </button>
-            <p className="hint">Arrow keys to run · Space to jump · Jump on the Grumbles!</p>
+            <p className="hint">Arrow keys to run · Space to jump · Bump treasure chests for surprises!</p>
             <img src={enemyUrl} alt="" className="title-enemy" />
           </div>
         </div>
@@ -79,6 +97,7 @@ export default function App() {
       {screen === 'maker' && (
         <HeroMaker
           design={design}
+          unlocked={unlocked}
           onBack={() => setScreen('title')}
           onPlay={(d) => {
             setDesign(d)
@@ -94,7 +113,7 @@ export default function App() {
             <div className="emoji">🎉</div>
             <h2>You did it!</h2>
             <p>
-              Coins: <b>{result.coins}</b> / {result.total}
+              You collected <b>{result.coins}</b> coins!
             </p>
             {hasNext ? (
               <button className="big-button" onClick={() => play(levelIndex + 1)}>

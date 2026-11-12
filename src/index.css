@@ -132,7 +132,7 @@ body,
   font-size: 56px;
 }
 .title-hero {
-  width: 110px;
+  width: 120px;
   animation: bounce 1.2s ease-in-out infinite;
 }
 .title-enemy {
@@ -337,9 +337,8 @@ body,
   font-size: 15px;
   font-weight: 600;
 }
-.game-preview img {
-  height: 64px;
-  image-rendering: pixelated;
+.game-preview .hero-picture {
+  height: 72px;
 }
 .name-field {
   display: flex;
@@ -453,4 +452,66 @@ body,
 }
 .pixel {
   box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.08);
+}
+
+/* ---- Hero with costume (menus) ---- */
+.hero-picture {
+  position: relative;
+  display: inline-block;
+}
+.hero-picture .layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hero-picture .hero-layer {
+  position: absolute;
+  bottom: 0;
+  image-rendering: pixelated;
+}
+
+/* ---- Treasure message ---- */
+.toast {
+  position: absolute;
+  top: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  border-radius: 999px;
+  background: #fffdf7;
+  box-shadow: 0 5px 0 rgba(0, 0, 0, 0.15), 0 10px 30px rgba(0, 0, 0, 0.15);
+  font-size: clamp(18px, 4vw, 26px);
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: toast-pop 0.4s cubic-bezier(0.2, 1.6, 0.4, 1);
+}
+@keyframes toast-pop {
+  from {
+    transform: translateX(-50%) scale(0.5);
+    opacity: 0;
+  }
+}
+
+/* ---- Costume picker ---- */
+.costume-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.costume-row .tool {
+  font-size: 15px;
+}
+.costume-row .tool.locked {
+  opacity: 0.45;
+  cursor: default;
+}
+.costume-label {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: center;
+  opacity: 0.75;
 }

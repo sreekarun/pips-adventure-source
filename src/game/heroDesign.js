@@ -4,6 +4,7 @@ import { makePixelSvg, starterPixels } from './art/pixelHero.js'
 import { SETTINGS } from './settings.js'
 
 const STORAGE_KEY = 'anamikas-adventure-hero'
+const UNLOCKED_KEY = 'anamikas-adventure-costumes'
 
 // mode 'color' = a colored-in shape (cat, dog...), mode 'pixels' = a painted pixel hero.
 // colors keeps one set of colors per shape, so switching shapes doesn't lose your coloring.
@@ -14,6 +15,7 @@ export function defaultDesign() {
     name: SETTINGS.heroName,
     colors: defaultShapeColors(),
     pixels: starterPixels(),
+    costume: null, // costume being worn (see costumes.js)
   }
 }
 
@@ -41,5 +43,23 @@ export function saveDesign(design) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(design))
   } catch {
     // Saving is a bonus; the game still works without it.
+  }
+}
+
+// Costumes found in treasure chests so far (a list of ids).
+export function loadUnlocked() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(UNLOCKED_KEY))
+    return Array.isArray(saved) ? saved : []
+  } catch {
+    return []
+  }
+}
+
+export function saveUnlocked(list) {
+  try {
+    localStorage.setItem(UNLOCKED_KEY, JSON.stringify(list))
+  } catch {
+    // Saving is a bonus.
   }
 }

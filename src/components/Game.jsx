@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { createGame, step } from '../game/engine.js'
-import { render } from '../game/render.js'
-import { loadArt } from '../game/art/index.js'
+import { createRenderer3D } from '../game/render3d.js'
+import { costumeImages, loadArt } from '../game/art/index.js'
+import { composeHero } from '../game/art/composeHero.js'
+import { getCostume } from '../game/costumes.js'
 import { playSound } from '../game/sounds.js'
 import { SETTINGS } from '../game/settings.js'
 import Hud from './Hud.jsx'
@@ -19,13 +21,31 @@ const KEYS = {
 
 const FRAME = 1000 / 60
 
-export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSound, onEnd }) {
+// What the message bubble says when you open a treasure chest.
+function rewardMessage(reward) {
+  if (!reward) return null
+  if (reward.kind === 'costume') {
+    const c = getCostume(reward.id)
+    return `${c.emoji} You found the ${c.name} costume!`
+  }
+  if (reward.kind === 'coins') {
+    if (reward.amount >= 10) return `🤩 WOW! ${reward.amount} coins!`
+    return reward.amount === 1 ? '🪙 1 coin' : `🪙 ${reward.amount} coins!`
+  }
+  return '💨 Empty! Maybe next time…'
+}
+
+export default function Game({ level, levelNumber, heroSvg, costume, unlocked, soundOn, onToggleSound, onCostume, onEnd }) {
   const canvasRef = useRef(null)
   const input = useRef({ left: false, right: false, jump: false })
   const paused = useRef(false)
   const soundRef = useRef(soundOn)
+  // Read these once when the level starts (changing them mid-level must not restart it).
+  const startRef = useRef({ costume, unlocked, onCostume, onEnd })
   const [hud, setHud] = useState(null)
+  const [toast, setToast] = useState(null)
   const [isPaused, setIsPaused] = useState(false)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
     soundRef.current = soundOn
@@ -63,53 +83,72 @@ export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSou
     let raf = 0
     let stopped = false
     let endTimer = 0
-    const game = createGame(level, SETTINGS)
+    let toastTimer = 0
+    let renderer = null
+    let observer = null
+    const start = startRef.current
+    const game = createGame(level, SETTINGS, { costume: start.costume, unlocked: start.unlocked })
     const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const viewH = SETTINGS.viewTilesHigh * SETTINGS.tileSize
-    let view = { w: viewH, h: viewH }
 
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect()
-      const dpr = window.devicePixelRatio || 1
-      canvas.width = Math.round(rect.width * dpr)
-      canvas.height = Math.round(rect.height * dpr)
-      view = { w: (viewH * rect.width) / rect.height, h: viewH }
-      const scale = canvas.height / viewH
-      ctx.setTransform(scale, 0, 0, scale, 0, 0)
-      ctx.imageSmoothingQuality = 'high'
-    }
-    const observer = new ResizeObserver(resize)
-    observer.observe(canvas)
-    resize()
-
-    const pushHud = () => setHud({ hearts: game.hearts, coins: game.coins, total: game.totalCoins })
+    const pushHud = () => setHud({ hearts: game.hearts, coins: game.coins })
     pushHud()
 
     loadArt({ hero: heroSvg }).then((art) => {
       if (stopped) return
+      try {
+        // ?nointro in the address skips the opening camera swoop (for testing).
+        const intro = !new URLSearchParams(window.location.search).has('nointro')
+        renderer = createRenderer3D(canvas, game, art, { intro })
+      } catch (err) {
+        console.error(err)
+        setError('This game needs 3D graphics (WebGL), and this browser could not start them.')
+        return
+      }
+      const dressHero = () => renderer.setHero(composeHero(art.hero, costumeImages(art, game.costume)))
+      dressHero()
+
+      const resize = () => {
+        const rect = canvas.getBoundingClientRect()
+        if (rect.width && rect.height) renderer.resize(rect.width, rect.height)
+      }
+      observer = new ResizeObserver(resize)
+      observer.observe(canvas)
+      resize()
+
       let last = performance.now()
       let acc = 0
       const loop = (now) => {
         acc += Math.min(now - last, 100)
         last = now
+        const events = []
         while (acc >= FRAME) {
           acc -= FRAME
           if (paused.current) continue
           const before = game.status
           step(game, input.current)
-          if (game.events.length) {
-            if (soundRef.current) game.events.forEach(playSound)
-            pushHud()
-          }
+          events.push(...game.events)
           if (before === 'playing' && game.status !== 'playing') {
             endTimer = setTimeout(
-              () => onEnd({ status: game.status, coins: game.coins, total: game.totalCoins }),
-              game.status === 'won' ? 1200 : 900,
+              () => start.onEnd({ status: game.status, coins: game.coins }),
+              game.status === 'won' ? 2200 : 1400,
             )
           }
         }
-        render(ctx, game, art, view.w, view.h)
+        if (events.length) {
+          if (soundRef.current) events.forEach(playSound)
+          renderer.handleEvents(events)
+          pushHud()
+          if (events.includes('treasure')) {
+            setToast(rewardMessage(game.lastReward))
+            clearTimeout(toastTimer)
+            toastTimer = setTimeout(() => setToast(null), 2400)
+          }
+          if (events.includes('costume')) {
+            dressHero()
+            start.onCostume?.(game.costume)
+          }
+        }
+        renderer.render()
         raf = requestAnimationFrame(loop)
       }
       raf = requestAnimationFrame(loop)
@@ -119,10 +158,10 @@ export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSou
       stopped = true
       cancelAnimationFrame(raf)
       clearTimeout(endTimer)
-      observer.disconnect()
+      clearTimeout(toastTimer)
+      observer?.disconnect()
+      renderer?.dispose()
     }
-    // onEnd is intentionally left out: a new function each render must not restart the level.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [level, heroSvg])
 
   return (
@@ -137,6 +176,11 @@ export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSou
           onPause={togglePause}
         />
       )}
+      {toast && (
+        <div className="toast" key={toast}>
+          {toast}
+        </div>
+      )}
       {isPaused && (
         <div className="overlay">
           <div className="card">
@@ -144,6 +188,14 @@ export default function Game({ level, levelNumber, heroSvg, soundOn, onToggleSou
             <button className="big-button" onClick={togglePause}>
               Keep playing
             </button>
+          </div>
+        </div>
+      )}
+      {error && (
+        <div className="overlay">
+          <div className="card">
+            <h2>Oh no!</h2>
+            <p>{error}</p>
           </div>
         </div>
       )}

@@ -3,13 +3,14 @@ import { PALETTE } from '../game/art/palette.js'
 import { HERO_SHAPES, getShape, makeHeroSvg } from '../game/art/heroes/index.js'
 import { GRID_W, GRID_H, emptyPixels, floodFill, starterPixels } from '../game/art/pixelHero.js'
 import { designToSvg } from '../game/heroDesign.js'
-import { svgUrl } from '../game/art/index.js'
+import { COSTUMES } from '../game/costumes.js'
+import HeroPicture from './HeroPicture.jsx'
 
 // 🎨 The hero maker: color in a cat or dog, or paint your own pixel hero.
-export default function HeroMaker({ design, onPlay, onBack }) {
+export default function HeroMaker({ design, unlocked, onPlay, onBack }) {
   const [draft, setDraft] = useState(design)
   const [color, setColor] = useState(PALETTE[8])
-  const previewUrl = useMemo(() => svgUrl(designToSvg(draft), 12), [draft])
+  const heroSvg = useMemo(() => designToSvg(draft), [draft])
 
   const update = (changes) => setDraft((d) => ({ ...d, ...changes }))
 
@@ -46,8 +47,30 @@ export default function HeroMaker({ design, onPlay, onBack }) {
             <Palette color={color} onPick={setColor} />
 
             <div className="game-preview">
-              <img src={previewUrl} alt="Your hero in the game" />
+              <HeroPicture heroSvg={heroSvg} costume={draft.costume} />
               <span>In the game</span>
+            </div>
+
+            <p className="costume-label">Costumes (find more in treasure chests!)</p>
+            <div className="costume-row">
+              <button className={!draft.costume ? 'tool active' : 'tool'} onClick={() => update({ costume: null })}>
+                None
+              </button>
+              {COSTUMES.map((c) =>
+                unlocked.includes(c.id) ? (
+                  <button
+                    key={c.id}
+                    className={draft.costume === c.id ? 'tool active' : 'tool'}
+                    onClick={() => update({ costume: c.id })}
+                  >
+                    {c.emoji} {c.name}
+                  </button>
+                ) : (
+                  <button key={c.id} className="tool locked" disabled title="Find it in a treasure chest!">
+                    🔒 ???
+                  </button>
+                ),
+              )}
             </div>
 
             <label className="name-field">

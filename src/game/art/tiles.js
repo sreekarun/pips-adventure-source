@@ -26,22 +26,29 @@ export const platform = `
   <path d="M1 24 H47 M24 24 V47 M12 1 V24 M36 1 V24" stroke="#c9184a" stroke-width="1.5" opacity="0.5"/>
 </svg>`
 
-// Bonus box before it is bumped: a gift with a bow.
+// Treasure chest before it is bumped. Bump it from below for a surprise!
 export const bonus = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <rect x="1" y="1" width="46" height="46" rx="7" fill="#3ec1d3" stroke="#147a8a" stroke-width="2"/>
-  <rect x="20" y="1" width="8" height="46" fill="#ffd23f"/>
-  <rect x="1" y="20" width="46" height="8" fill="#ffd23f"/>
-  <circle cx="24" cy="24" r="6" fill="#ffb703" stroke="#c98a00" stroke-width="1.5"/>
-  <rect x="5" y="5" width="10" height="5" rx="2.5" fill="#a6ecf5"/>
+  <rect x="1" y="1" width="46" height="46" rx="5" fill="#b8692a" stroke="#5c2e0a" stroke-width="2"/>
+  <rect x="1" y="1" width="46" height="17" rx="5" fill="#d4843d" stroke="#5c2e0a" stroke-width="2"/>
+  <path d="M4 30 H44 M4 39 H44" stroke="#8f4f1c" stroke-width="1.5"/>
+  <rect x="6" y="1" width="6" height="46" fill="#ffd23f" stroke="#c98a00" stroke-width="1"/>
+  <rect x="36" y="1" width="6" height="46" fill="#ffd23f" stroke="#c98a00" stroke-width="1"/>
+  <rect x="1" y="16" width="46" height="5" fill="#ffd23f" stroke="#c98a00" stroke-width="1"/>
+  <rect x="18" y="13" width="12" height="14" rx="3" fill="#ffd23f" stroke="#c98a00" stroke-width="1.5"/>
+  <circle cx="24" cy="19" r="2.2" fill="#5c2e0a"/>
+  <path d="M23 20 H25 L25.6 24 H22.4 Z" fill="#5c2e0a"/>
+  <path d="M16 6 h5" stroke="#f3b27a" stroke-width="2" stroke-linecap="round"/>
 </svg>`
 
-// Bonus box after it is bumped (empty).
+// Treasure chest after it is opened (empty and dull).
 export const bonusUsed = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">
-  <rect x="1" y="1" width="46" height="46" rx="7" fill="#b8b2a7" stroke="#7a736a" stroke-width="2"/>
-  <circle cx="9" cy="9" r="2" fill="#7a736a"/><circle cx="39" cy="9" r="2" fill="#7a736a"/>
-  <circle cx="9" cy="39" r="2" fill="#7a736a"/><circle cx="39" cy="39" r="2" fill="#7a736a"/>
+  <rect x="1" y="1" width="46" height="46" rx="5" fill="#9c8b7a" stroke="#5a4a3c" stroke-width="2"/>
+  <rect x="1" y="1" width="46" height="17" rx="5" fill="#ad9c8a" stroke="#5a4a3c" stroke-width="2"/>
+  <rect x="6" y="1" width="6" height="46" fill="#c9bfae"/>
+  <rect x="36" y="1" width="6" height="46" fill="#c9bfae"/>
+  <rect x="1" y="16" width="46" height="5" fill="#c9bfae"/>
 </svg>`
 
 export const spikes = `

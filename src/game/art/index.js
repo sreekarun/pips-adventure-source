@@ -4,10 +4,39 @@ import { enemy } from './enemy.js'
 import { coin, heart, flag } from './items.js'
 import { grass, dirt, platform, bonus, bonusUsed, spikes } from './tiles.js'
 import { cloud, hills } from './background.js'
+import { COSTUME_ART } from './costumes.js'
 
 const hero = makeHeroSvg('cat')
 
-export const SVGS = { hero, enemy, coin, heart, flag, grass, dirt, platform, bonus, bonusUsed, spikes, cloud, hills }
+// Costume layers are named like "wizardUnder" and "wizardOver".
+const costumeLayers = Object.fromEntries(
+  Object.entries(COSTUME_ART).flatMap(([id, art]) => [
+    [`${id}Under`, art.under],
+    [`${id}Over`, art.over],
+  ]),
+)
+
+export const SVGS = {
+  hero,
+  enemy,
+  coin,
+  heart,
+  flag,
+  grass,
+  dirt,
+  platform,
+  bonus,
+  bonusUsed,
+  spikes,
+  cloud,
+  hills,
+  ...costumeLayers,
+}
+
+// The two loaded costume pictures for a costume id (or null for no costume).
+export function costumeImages(art, id) {
+  return id && art[`${id}Over`] ? { under: art[`${id}Under`], over: art[`${id}Over`] } : null
+}
 
 // Adds a big width/height so drawings stay sharp when scaled (and so Safari draws them).
 export function svgUrl(svg, sharpness = 3) {

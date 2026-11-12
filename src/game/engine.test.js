@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { createGame, step } from './engine.js'
 import { SETTINGS } from './settings.js'
 import { LEVELS } from './levels/index.js'
+import { COSTUMES } from './costumes.js'
 
 const ALLOWED = new Set(['.', '#', '=', 'B', 'o', 'E', 'S', 'P', 'F'])
 const idle = { left: false, right: false, jump: false }
@@ -72,11 +73,55 @@ describe('engine', () => {
     expect(game.hearts).toBe(SETTINGS.hearts)
   })
 
-  it('gets a coin from a bonus box', () => {
-    const game = createGame(tiny(['......', '..B...', '......', '..P...', '######']), SETTINGS)
+})
+
+describe('treasure chests', () => {
+  // Fixed chances so these tests don't change when settings.js is edited.
+  const settings = {
+    ...SETTINGS,
+    treasureChances: [
+      { reward: 'coins', amount: 10, chance: 1 },
+      { reward: 'costume', chance: 1 },
+      { reward: 'nothing', chance: 1 },
+    ],
+  }
+  const chestLevel = tiny(['......', '..B...', '......', '..P...', '######'])
+  const openChest = (roll, options = {}) => {
+    const game = createGame(chestLevel, settings, { random: () => roll, ...options })
     run(game, idle, 5)
     run(game, { ...idle, jump: true }, 30)
-    expect(game.coins).toBe(1)
+    return game
+  }
+
+  it('can give lots of coins', () => {
+    const game = openChest(0.1)
+    expect(game.coins).toBe(10)
+    expect(game.lastReward).toEqual({ kind: 'coins', amount: 10 })
     expect(game.world.grid[1][2]).toBe('b')
+  })
+
+  it('can give a new costume and put it on', () => {
+    const game = openChest(0.5)
+    expect(game.lastReward.kind).toBe('costume')
+    expect(game.costume).toBe(game.lastReward.id)
+    expect(game.unlocked.has(game.costume)).toBe(true)
+  })
+
+  it('gives coins instead once you have every costume', () => {
+    const game = openChest(0.5, { unlocked: COSTUMES.map((c) => c.id) })
+    expect(game.lastReward).toEqual({ kind: 'coins', amount: 5 })
+  })
+
+  it('can be empty', () => {
+    const game = openChest(0.9)
+    expect(game.lastReward).toEqual({ kind: 'nothing' })
+    expect(game.coins).toBe(0)
+  })
+
+  it('only opens once', () => {
+    const game = openChest(0.1)
+    run(game, idle, 60)
+    run(game, { ...idle, jump: true }, 30)
+    expect(game.coins).toBe(10)
   })
 })

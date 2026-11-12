@@ -5,7 +5,7 @@ const heartUrl = svgUrl(SVGS.heart)
 const coinUrl = svgUrl(SVGS.coin)
 
 // The bar at the top: hearts, coins, level name and buttons.
-export default function Hud({ hearts, coins, total, levelName, soundOn, onToggleSound, onPause }) {
+export default function Hud({ hearts, coins, levelName, soundOn, onToggleSound, onPause }) {
   return (
     <div className="hud">
       <div className="hud-pill">
@@ -15,9 +15,7 @@ export default function Hud({ hearts, coins, total, levelName, soundOn, onToggle
       </div>
       <div className="hud-pill">
         <img src={coinUrl} alt="" className="coin-icon" />
-        <span>
-          {coins} / {total}
-        </span>
+        <span>{coins}</span>
       </div>
       <div className="hud-pill level-name">{levelName}</div>
       <div className="hud-spacer" />

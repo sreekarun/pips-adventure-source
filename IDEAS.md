@@ -10,9 +10,9 @@ Ideas for the game. Claude adds new ones and ticks them off when they're built!
 - [x] Hearts, sounds, and touch buttons for the iPad
 - [x] Make your own hero: color in Pip, or paint a pixel hero (Anamika's idea!)
 - [x] A tiny white-ish tan dog with black ear tips to color in (Anamika's design!)
+- [x] 3D look: chunky blocks, shadows, trees, spinning coins, camera swoops (Anamika's idea!)
+- [x] Treasure chests with surprises: 1, 5 or 10 coins, a costume, or nothing! (Anamika's idea!)
+- [x] Costumes: space explorer, pirate, wizard, mermaid
 
 ## Want to build 🛠️
-- [ ] 3D look: chunky blocks, shadows, camera swoops at cool moments
-- [ ] Treasure chests with surprises: 1, 5 or 10 coins, a costume, or nothing!
-- [ ] Costumes: space explorer, pirate, wizard, mermaid
 - [ ] More hero shapes to color in (bunny? unicorn? robot?)
