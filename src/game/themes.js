@@ -59,6 +59,21 @@ export const THEMES = {
     fog: '#2a7fb8',
     physics: { gravity: 0.32, jumpPower: 10, maxFallSpeed: 6, runSpeed: 3.8 }, // floaty
   },
+  school: {
+    name: 'Abbotts Hill Elementary',
+    emoji: '🐆',
+    skyTop: '#6ec6ff',
+    skyBottom: '#e0f7fa',
+    groundColor: '#7ed56f',
+    topColor: '#14b8a6',
+    topSpeckles: ['#5eead4', '#0f9d8f'],
+    scenery: 'school',
+    clouds: '#ffffff',
+    sun: '#ffec8c',
+    flag: { color: '#14b8a6', symbol: 'paw' }, // teal flag with a jaguar paw print
+    winMessage: 'Together We Make a Difference! 🐆',
+    physics: {},
+  },
   space: {
     name: 'Outer Space',
     emoji: '🚀',

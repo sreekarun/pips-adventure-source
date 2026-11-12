@@ -61,6 +61,15 @@ describe.each(LEVELS.map((l, i) => [i + 1, l]))('level %i', (_, level) => {
 
 const tiny = (rows) => ({ name: 'test', map: rows })
 
+describe('worlds', () => {
+  it('every world has all its art', async () => {
+    const { THEME_ART } = await import('./art/themeArt.js')
+    for (const id of Object.keys(THEMES)) {
+      for (const part of ['top', 'dirt', 'platform', 'hills', 'enemy']) expect(THEME_ART[id]?.[part], `${id} ${part}`).toBeTruthy()
+    }
+  })
+})
+
 describe('engine', () => {
   it('jumps and lands again', () => {
     const game = run(createGame(tiny(['......', '......', '......', '.P....', '######']), SETTINGS), idle, 10)

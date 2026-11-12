@@ -178,7 +178,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     clothGeo.translate(0.5, 0, 0)
     const cloth = new THREE.Mesh(
       clothGeo,
-      new THREE.MeshLambertMaterial({ map: canvasTex(flagCanvas()), side: THREE.DoubleSide }),
+      new THREE.MeshLambertMaterial({ map: canvasTex(flagCanvas(theme.flag)), side: THREE.DoubleSide }),
     )
     cloth.position.set(fx + 0.04, fy + 3.45, 0)
     cloth.castShadow = true
@@ -291,7 +291,7 @@ export function createRenderer3D(canvas, game, art, options = {}) {
   }
 
   // ---- Camera state ----
-  const cam = { ...(intro ? CAMERA.intro : CAMERA.normal), x: world.start.x / T + 3, y: 5 }
+  const cam = { ...(intro ? CAMERA.intro : CAMERA.normal), x: game.hero.x / T + 3, y: 5 }
   let shot = null
   let shake = 0
   let introFrames = intro ? 110 : 0
@@ -369,8 +369,10 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     crystal: sceneGeo(new THREE.OctahedronGeometry(1)),
     star5: sceneGeo(new THREE.CylinderGeometry(1, 1, 0.3, 5)),
     weed: sceneGeo(new THREE.BoxGeometry(0.12, 1, 0.05).translate(0, 0.5, 0)),
+    box: sceneGeo(new THREE.BoxGeometry(1, 1, 1)),
   }
   const swaying = [] // seaweed that waves in the water
+  let mascot = null
   const skyThings = new THREE.Group() // planets: they move with the camera
   scene.add(skyThings)
 
@@ -401,6 +403,11 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     const coralColors = [0xff7f6e, 0xf15bb5, 0xffd23f, 0xb388eb].map((c) => sceneMat(c))
     const weedMat = sceneMat(0x2a9d8f, { side: THREE.DoubleSide })
     const moonRock = [0x9a9aae, 0x7d7d93].map((c) => sceneMat(c))
+    const tealMat = sceneMat(0x14b8a6, { side: THREE.DoubleSide })
+    const yellow = sceneMat(0xffd23f)
+    const red = sceneMat(0xe63946)
+    const wood = sceneMat(0xf3c98b)
+    const bookColors = [0xe63946, 0x14b8a6, 0xffd23f, 0x4361ee, 0x111827].map((c) => sceneMat(c))
     const glow = [0x3ec1d3, 0xf15bb5, 0xa6ecf5].map((c) => {
       const m = new THREE.MeshBasicMaterial({ color: c })
       disposables.push(m)
@@ -449,6 +456,18 @@ export function createRenderer3D(canvas, game, art, options = {}) {
         r > 0.75
           ? group(mesh('crystal', pick(glow, r), 0, 0.9, 0, 0.35, 0.9, 0.35), mesh('crystal', pick(glow, r + 0.3), 0.4, 0.5, 0, 0.2, 0.5, 0.2))
           : group(mesh('rock', pick(moonRock, r), 0, 0.3, 0, 0.9, 0.6, 0.8)),
+      school: (r) =>
+        r > 0.8
+          ? group(
+              mesh('stick', snow, 0, 1.75, 0, 1, 3.5, 1),
+              mesh('box', tealMat, 0.45, 3.1, 0, 0.8, 0.5, 0.04),
+              mesh('ball', yellow, 0, 3.55, 0, 0.1),
+            )
+          : group(
+              mesh('trunk', brown, 0, 0.7, 0),
+              mesh('ball', pick(leaves, r), 0, 1.9, 0, 1, 1.1, 1),
+              mesh('ball', pick(leaves, r + 0.4), 0.3, 2.6, 0.1, 0.65),
+            ),
     }[theme.scenery]
 
     // Small things on top of the ground blocks, behind where you run.
@@ -486,6 +505,24 @@ export function createRenderer3D(canvas, game, art, options = {}) {
           : r < 0.4
             ? [mesh('crystal', pick(glow, r), 0, 0.25, -1.8, 0.12, 0.3, 0.12)]
             : [],
+      school: (r) => {
+        if (r < 0.2) {
+          // a stack of books
+          return [0, 1, 2].map((i) => mesh('box', pick(bookColors, r * 7 + i), 0, 0.06 + i * 0.12, -1.7, 0.55 - i * 0.06, 0.11, 0.4))
+        }
+        if (r < 0.35) {
+          // an apple for the teacher
+          return [mesh('ball', red, 0, 0.14, -1.5, 0.14), mesh('stick', stem, 0, 0.3, -1.5, 0.5, 0.1, 0.5)]
+        }
+        if (r < 0.48) {
+          // a pencil lying on the turf
+          const pencil = group(mesh('stick', yellow, 0, 0, 0, 1.4, 0.6, 1.4), mesh('cone', wood, 0, 0.38, 0, 0.07, 0.16, 0.07))
+          pencil.rotation.z = Math.PI / 2
+          pencil.position.set(0, 0.07, -1.3)
+          return [pencil]
+        }
+        return []
+      },
     }[theme.scenery]
 
     const gy = groundTopY()
@@ -506,6 +543,36 @@ export function createRenderer3D(canvas, game, art, options = {}) {
       g.position.set(tx + 0.5, H - ty, 0)
       g.traverse((o) => o.isMesh && (o.castShadow = true))
       scene.add(g)
+    }
+
+    // The school building (more than one along a long level).
+    if (theme.scenery === 'school') {
+      const front = sceneMat(0xffffff, { map: canvasTex(schoolFrontCanvas()) })
+      const wall = sceneMat(0xf1e9da)
+      const roof = sceneMat(0x111827)
+      const buildingGeo = sceneGeo(new THREE.BoxGeometry(12, 3.6, 4))
+      const roofGeo = sceneGeo(new THREE.BoxGeometry(12.6, 0.35, 4.6))
+      for (let x = 10; x < world.width + 10; x += 45) {
+        const building = new THREE.Mesh(buildingGeo, [wall, wall, roof, wall, front, wall])
+        building.position.set(x, gy + 1.8, -16)
+        const top = new THREE.Mesh(roofGeo, roof)
+        top.position.set(x, gy + 3.75, -16)
+        for (const m of [building, top]) m.castShadow = m.receiveShadow = true
+        scene.add(building, top)
+      }
+    }
+
+    // A cheering mascot next to the finish flag (only worlds that have one).
+    const mascotImg = themed('mascot')
+    if (mascotImg && world.flag) {
+      const mascotMat = new THREE.MeshBasicMaterial({ map: tex(mascotImg, { w: 240, h: 288 }), alphaTest: 0.5, side: THREE.DoubleSide })
+      const mascotGeo = new THREE.PlaneGeometry(1.7, 1.7 * (72 / 60))
+      mascotGeo.translate(0, (1.7 * (72 / 60)) / 2, 0)
+      disposables.push(mascotMat, mascotGeo)
+      const fx = world.flag.x / T + 0.5
+      mascot = new THREE.Mesh(mascotGeo, mascotMat)
+      mascot.position.set(fx + 1.4, groundBelow(world.flag.x + T * 1.9, world.flag.y - 1) ?? toY(world.flag.y), -1.4)
+      scene.add(mascot)
     }
 
     // Planets in the sky for outer space.
@@ -632,6 +699,13 @@ export function createRenderer3D(canvas, game, art, options = {}) {
     heroMesh.rotation.y = 0
     faceCamera(heroMesh, hero.facing < 0)
     for (const { mesh, enemy } of enemyMeshes) faceCamera(mesh, enemy.vx > 0)
+    if (mascot) {
+      // The mascot cheers (hops) — extra excited when you win!
+      const hop = Math.abs(Math.sin(time * (game.status === 'won' ? 0.25 : 0.08))) * (game.status === 'won' ? 0.5 : 0.12)
+      mascot.position.y = mascot.userData.baseY ?? (mascot.userData.baseY = mascot.position.y)
+      mascot.position.y += hop
+      faceCamera(mascot, false)
+    }
 
     renderer.render(scene, camera)
   }
@@ -798,14 +872,27 @@ function dotCanvas(ring) {
   return c
 }
 
-function flagCanvas() {
+function flagCanvas(flag = {}) {
   const c = document.createElement('canvas')
   c.width = 128
   c.height = 80
   const ctx = c.getContext('2d')
-  ctx.fillStyle = '#06d6a0'
+  ctx.fillStyle = flag.color ?? '#06d6a0'
   ctx.fillRect(0, 0, 128, 80)
   ctx.fillStyle = '#ffffff'
+  if (flag.symbol === 'paw') {
+    // A paw print: one big pad and four toes.
+    ctx.fillStyle = '#111827'
+    ctx.beginPath()
+    ctx.ellipse(64, 50, 15, 12, 0, 0, Math.PI * 2)
+    ctx.fill()
+    for (const [x, y] of [[44, 32], [56, 22], [72, 22], [84, 32]]) {
+      ctx.beginPath()
+      ctx.ellipse(x, y, 6, 7.5, 0, 0, Math.PI * 2)
+      ctx.fill()
+    }
+    return c
+  }
   ctx.beginPath()
   for (let i = 0; i < 10; i++) {
     const r = i % 2 ? 9 : 22
@@ -813,5 +900,54 @@ function flagCanvas() {
     ctx.lineTo(64 + Math.cos(a) * r, 40 + Math.sin(a) * r)
   }
   ctx.fill()
+  return c
+}
+
+// The front of the school: cream walls, teal windows, a door and the school sign.
+function schoolFrontCanvas() {
+  const c = document.createElement('canvas')
+  c.width = 1200
+  c.height = 360
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#f1e9da'
+  ctx.fillRect(0, 0, 1200, 360)
+  ctx.fillStyle = '#d9cdb8'
+  for (let y = 20; y < 360; y += 40) ctx.fillRect(0, y, 1200, 3)
+  // Windows
+  for (const row of [140, 250]) {
+    for (let x = 60; x < 1160; x += 120) {
+      if (x > 480 && x < 720) continue
+      ctx.fillStyle = '#0f766e'
+      ctx.fillRect(x - 6, row - 6, 82, 72)
+      ctx.fillStyle = '#a5f3fc'
+      ctx.fillRect(x, row, 70, 60)
+      ctx.fillStyle = '#0f766e'
+      ctx.fillRect(x + 33, row, 4, 60)
+      ctx.fillRect(x, row + 28, 70, 4)
+    }
+  }
+  // Door
+  ctx.fillStyle = '#111827'
+  ctx.fillRect(520, 180, 160, 180)
+  ctx.fillStyle = '#14b8a6'
+  ctx.fillRect(530, 190, 66, 170)
+  ctx.fillRect(604, 190, 66, 170)
+  ctx.fillStyle = '#ffd23f'
+  ctx.beginPath()
+  ctx.arc(588, 280, 6, 0, Math.PI * 2)
+  ctx.arc(612, 280, 6, 0, Math.PI * 2)
+  ctx.fill()
+  // Sign
+  ctx.fillStyle = '#111827'
+  ctx.fillRect(250, 24, 700, 92)
+  ctx.fillStyle = '#14b8a6'
+  ctx.fillRect(258, 32, 684, 76)
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.font = 'bold 44px Arial, sans-serif'
+  ctx.fillText('ABBOTTS HILL', 600, 60)
+  ctx.font = 'bold 22px Arial, sans-serif'
+  ctx.fillText('ELEMENTARY  •  HOME OF THE JAGUARS', 600, 94)
   return c
 }

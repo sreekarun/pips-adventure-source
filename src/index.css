@@ -818,3 +818,13 @@ body,
 .builder-scroll {
   min-width: 0;
 }
+
+.win-message {
+  display: inline-block;
+  margin: 0 0 6px !important;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: #14b8a6;
+  color: white;
+  font-weight: 700;
+}

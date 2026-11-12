@@ -6,10 +6,11 @@ import level2 from './level2.js'
 import level3 from './level3.js'
 import level4 from './level4.js'
 import level5 from './level5.js'
+import level6 from './level6.js'
 import { SETTINGS } from '../settings.js'
 import { getTheme } from '../themes.js'
 
-export const LEVELS = [level1, level2, level3, level4, level5]
+export const LEVELS = [level1, level2, level3, level4, level5, level6]
 
 // The settings to play a level with: settings.js plus that world's physics (ice, water, moon...).
 export function levelSettings(level) {

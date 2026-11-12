@@ -9,6 +9,7 @@ import Spectate from './components/Spectate.jsx'
 import { LEVELS } from './game/levels/index.js'
 import { SETTINGS } from './game/settings.js'
 import { SVGS, svgUrl } from './game/art/index.js'
+import { getTheme } from './game/themes.js'
 import { designToSvg, loadDesign, loadUnlocked, saveDesign, saveUnlocked } from './game/heroDesign.js'
 import { buyLevel, finishLevel, loadProgress, restartGame, saveProgress } from './game/progress.js'
 import { mapFromStrings, newLevelMap } from './game/levelBuilder.js'
@@ -192,6 +193,7 @@ export default function App() {
           <div className="card">
             <div className="emoji">🎉</div>
             <h2>You did it!</h2>
+            {getTheme(level.theme).winMessage && <p className="win-message">{getTheme(level.theme).winMessage}</p>}
             <p>
               You collected <b>{result.coins}</b> coins!
               {!testing && (

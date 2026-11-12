@@ -108,6 +108,12 @@ export default function Game({
       powers: start.bot ? {} : start.powers,
     })
     const brain = start.bot ? createBrain() : null
+    // ?at=90 in the address starts the hero at column 90 (for testing the end of a level).
+    const at = Number(new URLSearchParams(window.location.search).get('at'))
+    if (at && !start.bot) {
+      game.hero.x = at * game.T
+      game.hero.y = 0
+    }
     const canvas = canvasRef.current
 
     const pushHud = () => setHud({ hearts: game.hearts, coins: game.coins })
