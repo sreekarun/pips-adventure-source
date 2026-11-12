@@ -12,7 +12,7 @@ export default {
   id: 'space',
   name: 'Outer Space',
   theme: 'space', // which world it's in (see themes.js)
-  price: 60, // coins it costs to unlock
+  price: 75, // coins it costs to unlock
   map: [
     '..........................................................................................B...................',
     '...............................B..............................................................................',

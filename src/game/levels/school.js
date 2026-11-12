@@ -13,7 +13,7 @@ export default {
   id: 'school',
   name: 'Abbotts Hill Elementary',
   theme: 'school', // which world it's in (see themes.js)
-  price: 75, // coins it costs to unlock
+  price: 0, // coins it costs to unlock (the first world is free)
   map: [
     '........................................................................................................',
     '........................................................................................................',

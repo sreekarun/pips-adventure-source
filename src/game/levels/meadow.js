@@ -13,7 +13,7 @@ export default {
   id: 'meadow',
   name: 'Sunny Meadow',
   theme: 'meadow', // which world it's in (see themes.js)
-  price: 0, // coins it costs to unlock (the first level is free)
+  price: 15, // coins it costs to unlock
   map: [
     '............................................................................................',
     '............................................................................................',

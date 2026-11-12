@@ -12,7 +12,7 @@ export default {
   id: 'snow',
   name: 'Snowy Mountains',
   theme: 'snow', // which world it's in (see themes.js)
-  price: 15, // coins it costs to unlock
+  price: 30, // coins it costs to unlock
   map: [
     '....................................................................................................',
     '....................................................................................................',

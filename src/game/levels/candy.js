@@ -12,7 +12,7 @@ export default {
   id: 'candy',
   name: 'Candy Land',
   theme: 'candy', // which world it's in (see themes.js)
-  price: 30, // coins it costs to unlock
+  price: 45, // coins it costs to unlock
   map: [
     '........................................................................................................',
     '............................B...........................................................................',

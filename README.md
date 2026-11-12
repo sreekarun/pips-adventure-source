@@ -23,5 +23,5 @@ Files you can also edit by hand:
 | File | What it changes |
 | --- | --- |
 | `src/game/settings.js` | Speed, jump height, gravity, hearts, names, sky color |
-| `src/game/levels/level1.js` | The level map, drawn with letters |
+| `src/game/levels/` | The level maps, drawn with letters (one file per world) |
 | `src/game/art/` | What everything looks like |

@@ -12,7 +12,7 @@ export default {
   id: 'sea',
   name: 'Under the Sea',
   theme: 'sea', // which world it's in (see themes.js)
-  price: 45, // coins it costs to unlock
+  price: 60, // coins it costs to unlock
   map: [
     '....................................................................................................',
     '....................................................................................................',

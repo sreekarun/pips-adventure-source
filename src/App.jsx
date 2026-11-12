@@ -45,7 +45,7 @@ export default function App() {
         : loadDesign(),
   )
   const [unlocked, setUnlocked] = useState(loadUnlocked)
-  const [progress, setProgressState] = useState(loadProgress)
+  const [progress, setProgressState] = useState(() => loadProgress(LEVEL_IDS[0]))
   const [editing, setEditing] = useState(newCustomLevel)
   const [testing, setTesting] = useState(false) // playing a level from the builder
   const heroSvg = useMemo(() => designToSvg(design), [design])

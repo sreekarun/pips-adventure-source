@@ -4,7 +4,7 @@ import { SETTINGS } from './settings.js'
 
 const KEY = 'anamikas-adventure-progress'
 
-export function defaultProgress(firstLevelId = 'meadow') {
+export function defaultProgress(firstLevelId = 'school') {
   return {
     bank: 0, // coins saved up to spend on worlds
     unlockedLevels: [firstLevelId],
@@ -16,11 +16,20 @@ export function defaultProgress(firstLevelId = 'meadow') {
   }
 }
 
-export function loadProgress() {
-  const base = defaultProgress()
+export function loadProgress(firstLevelId = 'school') {
+  const base = defaultProgress(firstLevelId)
   try {
     const saved = JSON.parse(localStorage.getItem(KEY))
-    if (saved && typeof saved === 'object') return { ...base, ...saved, powers: { ...base.powers, ...saved.powers } }
+    if (saved && typeof saved === 'object') {
+      const unlockedLevels = saved.unlockedLevels ?? []
+      return {
+        ...base,
+        ...saved,
+        powers: { ...base.powers, ...saved.powers },
+        // The first world is always open, even if it was added after you started playing.
+        unlockedLevels: unlockedLevels.includes(firstLevelId) ? unlockedLevels : [firstLevelId, ...unlockedLevels],
+      }
+    }
   } catch {
     // Nothing saved yet.
   }
@@ -58,6 +67,6 @@ export function finishLevel(progress, { levelId, coins, won }, allLevelIds) {
 }
 
 // "Restart the game": lock the worlds again, but keep your coins, costumes and admin powers.
-export function restartGame(progress, firstLevelId = 'meadow') {
+export function restartGame(progress, firstLevelId = 'school') {
   return { ...progress, unlockedLevels: [firstLevelId], completed: [], bonusClaimed: false }
 }

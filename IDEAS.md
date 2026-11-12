@@ -19,6 +19,7 @@ Ideas for the game. Claude adds new ones and ticks them off when they're built!
 - [x] Admin: super powers (fly, never get hurt, super speed) and a level builder
 - [x] Spectate: watch silly computer players
 - [x] Abbotts Hill Elementary world: teal & black, book platforms, the school building, and a cheering Jaguar 🐆 (Anamika's idea!)
+- [x] School is the first world (free!), then Meadow, Snow, Candy, Sea, Space
 
 ## Want to build 🛠️
 - [ ] More hero shapes to color in (bunny? unicorn? robot?)
