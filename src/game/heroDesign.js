@@ -1,32 +1,39 @@
 // 🦸 The hero you make in the hero maker, and remembering it for next time.
-import { DEFAULT_HERO_COLORS, makeHeroSvg } from './art/hero.js'
+import { defaultShapeColors, makeHeroSvg } from './art/heroes/index.js'
 import { makePixelSvg, starterPixels } from './art/pixelHero.js'
 import { SETTINGS } from './settings.js'
 
 const STORAGE_KEY = 'anamikas-adventure-hero'
 
-// mode 'color' = colored-in Pip, mode 'pixels' = painted pixel hero.
+// mode 'color' = a colored-in shape (cat, dog...), mode 'pixels' = a painted pixel hero.
+// colors keeps one set of colors per shape, so switching shapes doesn't lose your coloring.
 export function defaultDesign() {
   return {
     mode: 'color',
+    shape: 'cat',
     name: SETTINGS.heroName,
-    colors: { ...DEFAULT_HERO_COLORS },
+    colors: defaultShapeColors(),
     pixels: starterPixels(),
   }
 }
 
 export function designToSvg(design) {
-  return design.mode === 'pixels' ? makePixelSvg(design.pixels) : makeHeroSvg(design.colors)
+  if (design.mode === 'pixels') return makePixelSvg(design.pixels)
+  return makeHeroSvg(design.shape, design.colors[design.shape])
 }
 
 export function loadDesign() {
+  const base = defaultDesign()
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
-    if (saved && saved.colors && Array.isArray(saved.pixels)) return { ...defaultDesign(), ...saved }
+    if (!saved || !saved.colors || !Array.isArray(saved.pixels)) return base
+    // Older saves kept only the cat's colors.
+    const colors = saved.colors.fur ? { cat: saved.colors } : saved.colors
+    return { ...base, ...saved, colors: { ...base.colors, ...colors } }
   } catch {
     // Nothing saved yet (or the browser blocks saving). Use the default hero.
+    return base
   }
-  return defaultDesign()
 }
 
 export function saveDesign(design) {

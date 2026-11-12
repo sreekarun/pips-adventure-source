@@ -10,7 +10,7 @@ const enemyUrl = svgUrl(SVGS.enemy)
 
 // Screens: 'title' → ('maker') → 'playing' → 'won' or 'gameover'
 // Shortcuts for testing: http://localhost:5173/?play=2 jumps straight into level 2,
-// and http://localhost:5173/?maker (or ?maker=pixels) opens the hero maker.
+// and http://localhost:5173/?maker (or ?maker=pixels / ?maker=dog) opens the hero maker.
 const params = new URLSearchParams(window.location.search)
 const startLevel = Number(params.get('play')) || 0
 const startScreen = startLevel ? 'playing' : params.has('maker') ? 'maker' : 'title'
@@ -22,7 +22,11 @@ export default function App() {
   const [attempt, setAttempt] = useState(0)
   const [soundOn, setSoundOn] = useState(SETTINGS.soundOn)
   const [design, setDesign] = useState(() =>
-    params.get('maker') === 'pixels' ? { ...loadDesign(), mode: 'pixels' } : loadDesign(),
+    params.get('maker') === 'pixels'
+      ? { ...loadDesign(), mode: 'pixels' }
+      : params.get('maker') === 'dog'
+        ? { ...loadDesign(), mode: 'color', shape: 'dog' }
+        : loadDesign(),
   )
   const heroSvg = useMemo(() => designToSvg(design), [design])
   const heroUrl = useMemo(() => svgUrl(heroSvg, 12), [heroSvg])

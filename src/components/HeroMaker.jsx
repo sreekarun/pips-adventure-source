@@ -1,11 +1,11 @@
 import { useMemo, useRef, useState } from 'react'
 import { PALETTE } from '../game/art/palette.js'
-import { HERO_PARTS, makeHeroSvg, DEFAULT_HERO_COLORS } from '../game/art/hero.js'
+import { HERO_SHAPES, getShape, makeHeroSvg } from '../game/art/heroes/index.js'
 import { GRID_W, GRID_H, emptyPixels, floodFill, starterPixels } from '../game/art/pixelHero.js'
 import { designToSvg } from '../game/heroDesign.js'
 import { svgUrl } from '../game/art/index.js'
 
-// 🎨 The hero maker: color in Pip, or paint your own pixel hero.
+// 🎨 The hero maker: color in a cat or dog, or paint your own pixel hero.
 export default function HeroMaker({ design, onPlay, onBack }) {
   const [draft, setDraft] = useState(design)
   const [color, setColor] = useState(PALETTE[8])
@@ -30,7 +30,13 @@ export default function HeroMaker({ design, onPlay, onBack }) {
         <div className="maker-body">
           <div className="maker-canvas">
             {draft.mode === 'color' ? (
-              <ColorIn colors={draft.colors} color={color} onChange={(colors) => update({ colors })} />
+              <ColorIn
+                shape={draft.shape}
+                colors={draft.colors}
+                color={color}
+                onShape={(shape) => update({ shape })}
+                onChange={(colors) => update({ colors })}
+              />
             ) : (
               <PixelPainter pixels={draft.pixels} color={color} onChange={(pixels) => update({ pixels })} />
             )}
@@ -83,18 +89,28 @@ function Palette({ color, onPick }) {
   )
 }
 
-// Tap a part of the hero to paint it with the picked color.
-function ColorIn({ colors, color, onChange }) {
-  const svg = useMemo(() => makeHeroSvg(colors), [colors])
-  const paint = (part) => onChange({ ...colors, [part]: color })
+// Pick a hero shape, then tap a part of it to paint it with the picked color.
+function ColorIn({ shape, colors, color, onShape, onChange }) {
+  const current = getShape(shape)
+  const shapeColors = { ...current.colors, ...colors[shape] }
+  const svg = makeHeroSvg(shape, shapeColors)
+  const setShapeColors = (c) => onChange({ ...colors, [shape]: c })
+  const paint = (part) => setShapeColors({ ...shapeColors, [part]: color })
 
   const surprise = () => {
     const pick = () => PALETTE[Math.floor(Math.random() * PALETTE.length)]
-    onChange(Object.fromEntries(HERO_PARTS.map((p) => [p.id, pick()])))
+    setShapeColors(Object.fromEntries(current.parts.map((p) => [p.id, pick()])))
   }
 
   return (
     <div className="color-in">
+      <div className="tool-row">
+        {HERO_SHAPES.map((s) => (
+          <button key={s.id} className={s.id === shape ? 'tool active' : 'tool'} onClick={() => onShape(s.id)}>
+            {s.label}
+          </button>
+        ))}
+      </div>
       <div
         className="color-in-hero"
         dangerouslySetInnerHTML={{ __html: svg }}
@@ -103,11 +119,11 @@ function ColorIn({ colors, color, onChange }) {
           if (part) paint(part)
         }}
       />
-      <p className="maker-tip">Pick a color, then tap Pip!</p>
+      <p className="maker-tip">Pick a color, then tap your hero!</p>
       <div className="part-chips">
-        {HERO_PARTS.map((p) => (
+        {current.parts.map((p) => (
           <button key={p.id} className="chip" onClick={() => paint(p.id)}>
-            <span className="chip-dot" style={{ background: colors[p.id] }} />
+            <span className="chip-dot" style={{ background: shapeColors[p.id] }} />
             {p.label}
           </button>
         ))}
@@ -116,7 +132,7 @@ function ColorIn({ colors, color, onChange }) {
         <button className="tool" onClick={surprise}>
           🎲 Surprise me
         </button>
-        <button className="tool" onClick={() => onChange({ ...DEFAULT_HERO_COLORS })}>
+        <button className="tool" onClick={() => setShapeColors({ ...current.colors })}>
           ↺ Start over
         </button>
       </div>

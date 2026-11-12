@@ -1,32 +1,31 @@
-// 🐱 The hero: Pip, a brave little cat with a scarf.
+// 🐱 Pip, a brave little cat with a scarf.
 // Drawn facing RIGHT (the game flips it when running left).
-// Each part has a color you can change in the "Color in" hero maker.
-
-export const HERO_PARTS = [
-  { id: 'fur', label: 'Fur' },
-  { id: 'innerEar', label: 'Inside ears' },
-  { id: 'belly', label: 'Belly' },
-  { id: 'scarf', label: 'Scarf' },
-  { id: 'feet', label: 'Feet' },
-  { id: 'eyes', label: 'Eyes' },
-  { id: 'cheeks', label: 'Cheeks' },
-]
-
-export const DEFAULT_HERO_COLORS = {
-  fur: '#ff9f43',
-  innerEar: '#ffb3c7',
-  belly: '#fff4e0',
-  scarf: '#e63946',
-  feet: '#e8742a',
-  eyes: '#2b2d42',
-  cheeks: '#ff7aa2',
-}
+// Each data-part can be recolored in the "Color in" hero maker.
 
 const OUTLINE = '#4a2c14'
 
-export function makeHeroSvg(colors = DEFAULT_HERO_COLORS) {
-  const c = { ...DEFAULT_HERO_COLORS, ...colors }
-  return `
+export const cat = {
+  id: 'cat',
+  label: '🐱 Cat',
+  parts: [
+    { id: 'fur', label: 'Fur' },
+    { id: 'innerEar', label: 'Inside ears' },
+    { id: 'belly', label: 'Belly' },
+    { id: 'scarf', label: 'Scarf' },
+    { id: 'feet', label: 'Feet' },
+    { id: 'eyes', label: 'Eyes' },
+    { id: 'cheeks', label: 'Cheeks' },
+  ],
+  colors: {
+    fur: '#ff9f43',
+    innerEar: '#ffb3c7',
+    belly: '#fff4e0',
+    scarf: '#e63946',
+    feet: '#e8742a',
+    eyes: '#2b2d42',
+    cheeks: '#ff7aa2',
+  },
+  draw: (c) => `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 52">
   <g stroke="${OUTLINE}" stroke-width="1.6" stroke-linejoin="round">
     <path data-part="fur" d="M6 30 Q-2 26 2 18" fill="none" stroke="${c.fur}" stroke-width="4" stroke-linecap="round"/>
@@ -50,7 +49,5 @@ export function makeHeroSvg(colors = DEFAULT_HERO_COLORS) {
   <ellipse data-part="cheeks" cx="30" cy="22" rx="2.6" ry="1.6" fill="${c.cheeks}" opacity="0.7"/>
   <path d="M20 21 L22 21 L21 22.4 Z" fill="#c2185b" pointer-events="none"/>
   <path d="M18.5 23.5 Q21 26 23.5 23.5" fill="none" stroke="${OUTLINE}" stroke-width="1.3" stroke-linecap="round" pointer-events="none"/>
-</svg>`
+</svg>`,
 }
-
-export const hero = makeHeroSvg()

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { GRID_W, GRID_H, STARTER, emptyPixels, floodFill, makePixelSvg, starterPixels } from './art/pixelHero.js'
-import { HERO_PARTS, DEFAULT_HERO_COLORS, makeHeroSvg } from './art/hero.js'
+import { HERO_SHAPES, makeHeroSvg } from './art/heroes/index.js'
 import { defaultDesign, designToSvg } from './heroDesign.js'
 
 describe('pixel hero', () => {
@@ -29,17 +29,18 @@ describe('pixel hero', () => {
   })
 })
 
-describe('color-in hero', () => {
+describe.each(HERO_SHAPES.map((s) => [s.id, s]))('color-in %s', (id, shape) => {
   it('every part has a default color and appears in the drawing', () => {
-    const svg = makeHeroSvg(DEFAULT_HERO_COLORS)
-    for (const p of HERO_PARTS) {
-      expect(DEFAULT_HERO_COLORS[p.id]).toBeTruthy()
+    const svg = makeHeroSvg(id)
+    expect(svg).toContain('viewBox="0 0 40 52"')
+    for (const p of shape.parts) {
+      expect(shape.colors[p.id]).toBeTruthy()
       expect(svg).toContain(`data-part="${p.id}"`)
     }
   })
 
   it('uses the chosen colors', () => {
-    expect(makeHeroSvg({ ...DEFAULT_HERO_COLORS, scarf: '#123456' })).toContain('#123456')
+    expect(makeHeroSvg(id, { fur: '#123456' })).toContain('#123456')
   })
 })
 
@@ -48,5 +49,6 @@ describe('hero design', () => {
     const d = defaultDesign()
     expect(designToSvg(d)).toContain('data-part="fur"')
     expect(designToSvg({ ...d, mode: 'pixels' })).toContain('crispEdges')
+    expect(designToSvg({ ...d, shape: 'dog' })).toContain('data-part="earTips"')
   })
 })

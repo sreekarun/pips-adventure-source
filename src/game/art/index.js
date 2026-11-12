@@ -1,9 +1,11 @@
 // Turns the SVG drawings into pictures the game can paint on screen.
-import { hero } from './hero.js'
+import { makeHeroSvg } from './heroes/index.js'
 import { enemy } from './enemy.js'
 import { coin, heart, flag } from './items.js'
 import { grass, dirt, platform, bonus, bonusUsed, spikes } from './tiles.js'
 import { cloud, hills } from './background.js'
+
+const hero = makeHeroSvg('cat')
 
 export const SVGS = { hero, enemy, coin, heart, flag, grass, dirt, platform, bonus, bonusUsed, spikes, cloud, hills }
 

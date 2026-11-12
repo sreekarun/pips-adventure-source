@@ -307,6 +307,9 @@ body,
   margin-top: 0;
 }
 .palette {
+  width: 100%;
+  max-width: 340px;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(8, 1fr);
   gap: 8px;
