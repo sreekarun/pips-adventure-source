@@ -34,6 +34,8 @@ npm run check      # lint + tests + production build — run before every commit
 npm test           # tests only
 npx vitest run -t "collects coins"   # run a single test by name
 npm run lint       # oxlint
+npm run deploy:pages  # publish the PUBLIC version to GitHub Pages (real names swapped out,
+                      #   see PUBLIC_NAMES in vite.config.js). Only when the parent asks.
 ```
 
 Node was installed with nvm (`~/.nvm`). If `node` isn't found in a shell, run `source ~/.nvm/nvm.sh` first.

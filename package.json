@@ -9,7 +9,9 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "check": "npm run lint && npm test && npm run build"
+    "check": "npm run lint && npm test && npm run build",
+    "build:pages": "vite build --mode pages --outDir dist-pages --emptyOutDir",
+    "deploy:pages": "bash scripts/deploy-pages.sh"
   },
   "dependencies": {
     "react": "^19.3.1",
