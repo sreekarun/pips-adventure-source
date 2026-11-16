@@ -1,6 +1,6 @@
-# Anamika's Adventure 🐱⭐
+# Pip's Adventure 🐱⭐
 
-A side-scrolling platformer designed by Anamika and built with Claude Code.
+A side-scrolling platformer designed by Pip and built with Claude Code.
 
 ## Play
 

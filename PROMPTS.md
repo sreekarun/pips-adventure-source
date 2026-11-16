@@ -1,8 +1,8 @@
-# Prompts Used to Build "Anamika's Adventure"
+# Prompts Used to Build "Pip's Adventure"
 
-This game was built with Claude Code (Claude Opus 5.5). Anamika (age 9) came up with the game ideas, and a parent set up the project and watched.
+This game was built with Claude Code (Claude Opus 5.5). Pip (age 9) came up with the game ideas, and a parent set up the project and watched.
 
-Below is every prompt, in order. Each one is copied exactly as it was typed or spoken, including spelling. When Claude asked a multiple-choice question, the choice that was picked is shown below the question. The **Result** line names the git checkpoint (commit) made after that step.
+Below are the prompts, in order. Personal names in the original prompts have been replaced with Pip. When Claude asked a multiple-choice question, the choice that was picked is shown below the question. The **Result** line names the git checkpoint (commit) made after that step.
 
 ---
 
@@ -12,14 +12,14 @@ Below is every prompt, in order. Each one is copied exactly as it was typed or s
 *(The Claude Code command that creates a `CLAUDE.md` file. The folder was still empty at this point.)*
 
 ### Prompt 2
-> Anamika, she is 9, wants to create a mario like game. As parent I am able to assist her but she should be driving the requirements through prompt updates. You should prepare the project such that its easy for her to update, and iterate. The app can use react and it should be visually pleasant. Use ai generated kid safe assets for making it interesting.  Setup a local git repository and claude.md. Ask clarifying questions to be about the setup and inital app and prepare questions that you would ask her.
+> Pip, she is 9, wants to create a mario like game. As parent I am able to assist her but she should be driving the requirements through prompt updates. You should prepare the project such that its easy for her to update, and iterate. The app can use react and it should be visually pleasant. Use ai generated kid safe assets for making it interesting.  Setup a local git repository and claude.md. Ask clarifying questions to be about the setup and inital app and prepare questions that you would ask her.
 
 Claude asked these questions, and the parent picked:
 
 | Question | Answer |
 | --- | --- |
 | Where should the game art come from? | Claude-drawn SVG |
-| What will Anamika play on? | Both (computer keyboard and touch screen) |
+| What will Pip play on? | Both (computer keyboard and touch screen) |
 | How will she give her ideas to Claude? | She types, I watch |
 | How should the game engine work? | Small custom engine |
 
@@ -27,8 +27,8 @@ Claude asked these questions, and the parent picked:
 
 ---
 
-## Part 2: Anamika's ideas
-*(Anamika spoke most of these prompts out loud using Claude Code's `/voice` dictation.)*
+## Part 2: Pip's ideas
+*(Pip spoke most of these prompts out loud using Claude Code's `/voice` dictation.)*
 
 ### Prompt 3: Make your own hero
 > For making our own character or hero, can it be in a way that you can make your own, like, character? Like, there could be at the beginning, you can design it with, like, you can click, like, a button, and then you can, like, color it using, like, the colors, or, like, it's like you have to paint your avatar, like, character thing. And then, so can we be able to do that?
@@ -117,7 +117,7 @@ Claude asked these questions, and the parent picked:
 
 | Question | Answer |
 | --- | --- |
-| A GitHub Pages site is public, and the game shows Anamika's name and her real school. How do you want to go ahead? | Anonymize, then host |
+| A GitHub Pages site is public, and the game shows Pip's name and her real school. How do you want to go ahead? | Anonymize, then host |
 | The public version uses made-up names and only the built game goes in a separate public repo. The code repo stays private. OK to publish? | Yes, publish it |
 
 **Result:** `6b8946d` Public web version with made-up names, ready for GitHub Pages. The game is live at https://sreekarun.github.io/pips-adventure/

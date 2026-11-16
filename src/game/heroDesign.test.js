@@ -1,7 +1,9 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { GRID_W, GRID_H, STARTER, emptyPixels, floodFill, makePixelSvg, starterPixels } from './art/pixelHero.js'
 import { HERO_SHAPES, makeHeroSvg } from './art/heroes/index.js'
-import { defaultDesign, designToSvg } from './heroDesign.js'
+import { defaultDesign, designToSvg, loadDesign, loadUnlocked } from './heroDesign.js'
+
+afterEach(() => vi.unstubAllGlobals())
 
 describe('pixel hero', () => {
   it('starter drawing fits the grid', () => {
@@ -45,6 +47,16 @@ describe.each(HERO_SHAPES.map((s) => [s.id, s]))('color-in %s', (id, shape) => {
 })
 
 describe('hero design', () => {
+  it('loads saved hero data and costumes under the previous project keys', () => {
+    const saved = new Map([
+      ['anamikas-adventure-hero', JSON.stringify({ name: 'Pip', colors: {}, pixels: [] })],
+      ['anamikas-adventure-costumes', '["wizard"]'],
+    ])
+    vi.stubGlobal('localStorage', { getItem: (key) => saved.get(key) ?? null })
+    expect(loadDesign().name).toBe('Pip')
+    expect(loadUnlocked()).toEqual(['wizard'])
+  })
+
   it('turns either mode into an SVG', () => {
     const d = defaultDesign()
     expect(designToSvg(d)).toContain('data-part="fur"')

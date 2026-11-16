@@ -3,7 +3,7 @@
 
 export const SETTINGS = {
   // ---- Names ----
-  gameTitle: "Anamika's Adventure",
+  gameTitle: "Pip's Adventure",
   heroName: 'Pip',
 
   // ---- Hero ----

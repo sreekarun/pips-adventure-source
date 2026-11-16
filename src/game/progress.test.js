@@ -1,12 +1,21 @@
-import { describe, expect, it } from 'vitest'
-import { buyLevel, defaultProgress, finishLevel, restartGame } from './progress.js'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { buyLevel, defaultProgress, finishLevel, loadProgress, restartGame } from './progress.js'
 import { SETTINGS } from './settings.js'
 import { createGame, step } from './engine.js'
 
 const ids = ['a', 'b']
 const levelB = { id: 'b', price: 15 }
 
+afterEach(() => vi.unstubAllGlobals())
+
 describe('coin bank and worlds', () => {
+  it('loads progress saved under the previous project key', () => {
+    vi.stubGlobal('localStorage', {
+      getItem: (key) => (key === 'anamikas-adventure-progress' ? '{"bank":12}' : null),
+    })
+    expect(loadProgress('a').bank).toBe(12)
+  })
+
   it('banks coins after a level, even when you lose', () => {
     const { progress } = finishLevel(defaultProgress('a'), { levelId: 'a', coins: 7, won: false }, ids)
     expect(progress.bank).toBe(7)

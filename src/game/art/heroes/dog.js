@@ -1,5 +1,5 @@
 // 🐶 A tiny puppy: white-ish tan fur with black tips on its floppy ears.
-// (Designed by Anamika!) Drawn facing RIGHT.
+// (Designed by Pip!) Drawn facing RIGHT.
 
 const OUTLINE = '#5a4632'
 

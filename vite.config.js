@@ -1,12 +1,11 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'vite'
 
-// 🔒 The PUBLIC web version (npm run build:pages) swaps real names for made-up ones,
+// 🔒 The PUBLIC web version (npm run build:pages) swaps private details for made-up ones,
 // so the game on the internet doesn't show who made it or which school it's about.
-// The game on this computer (npm run dev) keeps the real names.
+// The game on this computer (npm run dev) keeps the local project details.
 // scripts/deploy-pages.sh refuses to publish if any word in PRIVATE_WORDS is left in the build.
 export const PUBLIC_NAMES = [
-  ["Anamika's Adventure", "Pip's Adventure"],
   ['anamikas-adventure', 'pips-adventure'],
   ['Abbotts Hill Elementary', 'Jaguar Elementary'],
   ['ABBOTTS HILL', 'JAGUAR'],

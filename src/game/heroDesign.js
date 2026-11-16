@@ -3,8 +3,10 @@ import { defaultShapeColors, makeHeroSvg } from './art/heroes/index.js'
 import { makePixelSvg, starterPixels } from './art/pixelHero.js'
 import { SETTINGS } from './settings.js'
 
-const STORAGE_KEY = 'anamikas-adventure-hero'
-const UNLOCKED_KEY = 'anamikas-adventure-costumes'
+const STORAGE_KEY = 'pips-adventure-hero'
+const UNLOCKED_KEY = 'pips-adventure-costumes'
+const LEGACY_STORAGE_KEY = 'anamikas-adventure-hero'
+const LEGACY_UNLOCKED_KEY = 'anamikas-adventure-costumes'
 
 // mode 'color' = a colored-in shape (cat, dog...), mode 'pixels' = a painted pixel hero.
 // colors keeps one set of colors per shape, so switching shapes doesn't lose your coloring.
@@ -27,7 +29,7 @@ export function designToSvg(design) {
 export function loadDesign() {
   const base = defaultDesign()
   try {
-    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY))
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? localStorage.getItem(LEGACY_STORAGE_KEY))
     if (!saved || !saved.colors || !Array.isArray(saved.pixels)) return base
     // Older saves kept only the cat's colors.
     const colors = saved.colors.fur ? { cat: saved.colors } : saved.colors
@@ -49,7 +51,7 @@ export function saveDesign(design) {
 // Costumes found in treasure chests so far (a list of ids).
 export function loadUnlocked() {
   try {
-    const saved = JSON.parse(localStorage.getItem(UNLOCKED_KEY))
+    const saved = JSON.parse(localStorage.getItem(UNLOCKED_KEY) ?? localStorage.getItem(LEGACY_UNLOCKED_KEY))
     return Array.isArray(saved) ? saved : []
   } catch {
     return []

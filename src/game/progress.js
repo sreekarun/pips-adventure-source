@@ -2,7 +2,8 @@
 // Saved in the browser so it's still there next time.
 import { SETTINGS } from './settings.js'
 
-const KEY = 'anamikas-adventure-progress'
+const KEY = 'pips-adventure-progress'
+const LEGACY_KEY = 'anamikas-adventure-progress'
 
 export function defaultProgress(firstLevelId = 'school') {
   return {
@@ -19,7 +20,7 @@ export function defaultProgress(firstLevelId = 'school') {
 export function loadProgress(firstLevelId = 'school') {
   const base = defaultProgress(firstLevelId)
   try {
-    const saved = JSON.parse(localStorage.getItem(KEY))
+    const saved = JSON.parse(localStorage.getItem(KEY) ?? localStorage.getItem(LEGACY_KEY))
     if (saved && typeof saved === 'object') {
       const unlockedLevels = saved.unlockedLevels ?? []
       return {
